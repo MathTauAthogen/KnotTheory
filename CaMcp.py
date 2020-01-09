@@ -37,7 +37,7 @@ def findPaths(root, depth, path, proj, hitproj):
 
     for i in downmoveplaces:
         #Add a down-move to the current path
-        pathSoFar = [-1] + path[:]
+        pathSoFar = [1] + path[:]
         temproot = root[:]
 
         #Execute the down-move and find the partition that results
@@ -50,11 +50,11 @@ def findPaths(root, depth, path, proj, hitproj):
             pathList += (findPaths(temproot, depth - 1, pathSoFar, proj, hitproj2))
 
         #Generate the list of ways we can move starting from the root, and which direction to move from the root to get there.
-        oneDepthLower += [[temproot, -1]]
+        oneDepthLower += [[temproot, 1]]
 
     for i in rightmoveplaces:
         #Each part here is the same except that to add to a column, we transpose the partition to turn columns into rows, add to the row, and transpose back to turn rows into columns.
-        pathSoFar = [1] + path[:]
+        pathSoFar = [-1] + path[:]
         temproot = transpose(root[:])
         temproot[temproot.index(i)] += 1
         hitproj2 = hitproj or (transpose(temproot[:]) == proj)
@@ -62,7 +62,7 @@ def findPaths(root, depth, path, proj, hitproj):
         if(path == []):
             pathList += (findPaths(transpose(temproot[:]), depth - 1, pathSoFar, proj, hitproj2))
 
-        oneDepthLower += [[transpose(temproot[:]), 1]]
+        oneDepthLower += [[transpose(temproot[:]), -1]]
 
     if(path != []):
         test = oneDepthLower
@@ -166,7 +166,6 @@ print("""(*Prerequisites*)
 print("(*The below is also boilerplate, but it is specific to the number of strands*)")
 temp = list(set(map(lambda a: tuple(a), test3[0])))
 temp.sort()
-temp = temp[::-1]
 test3[0] = map(lambda a: list(a), temp)
 print("Partitions = " + str(test3[0]).replace("[", "{").replace("]", "}"))
 print("Paths = " + str(occurences).replace("[", "{").replace("]", "}"))
@@ -181,7 +180,7 @@ print("Proj = DirSum[" + str(map(int, projmatr)).replace("[", "{").replace("]", 
 test2 = np.array(test2[1: -1][0]).T.tolist()
 for i in range(0, len(test2)):
     for j in range(len(test2[i])):
-        test2[i][j] = "q" if test2[i][j] == 1 else "-q^(-1)"
+        test2[i][j] = "q" if test2[i][j] == -1 else "-q^(-1)"
     qList = str(test2[i]).replace("'","").replace("[","").replace("]","")
     finalOutput = qList if i == 0 else re.sub("-q\^\(-1\), q", "B[" + str(i + 1) + "]", qList)
     print("R" + str(i + 1) + " = DirSum[{" + str(finalOutput) + "}]")
