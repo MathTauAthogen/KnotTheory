@@ -12,19 +12,21 @@ depth - Depth still to go in the tree
 path - The path taken to get to the root node
 proj - The partition for the representation
 hitproj - A boolean representing whether the partition has been reached in the path.
+last - the partition two times before, to determine doublets.
+doubmarkings - the current list of flags to determine whether to use a doublet matrix or not.
 
 Output: A list of data for each path from the root node down the tree of length depth, consisting of a tuple of first the leaf, whether it contains the representation, and then the path down the tree.
 """
 
-def findPaths(root, depth, path, proj, hitproj):
+def findPaths(root, depth, path, proj, hitproj, last, doubmarkings):
     newroot = root[:]
-
+    isDoubMarked = False
     #Base case
     if(depth == 0):
         if newroot != proj:
-            return [[root] + [hitproj] + path];
+            return [[root] + [hitproj] + path + doubmarkings];
         else:
-            return [[root] + [True] + path];
+            return [[root] + [True] + path + doubmarkings];
 
     downmoveplaces = list(set(newroot)) #The number of distinct values in the permutation is also equal to the number of places at which you can move down.
 
@@ -47,7 +49,7 @@ def findPaths(root, depth, path, proj, hitproj):
         hitproj2 = hitproj or (temproot == proj)
 
         if(path == []):
-            pathList += (findPaths(temproot, depth - 1, pathSoFar, proj, hitproj2))
+            pathList += (findPaths(temproot, depth - 1, pathSoFar, proj, hitproj2, root[:], [False]))
 
         #Generate the list of ways we can move starting from the root, and which direction to move from the root to get there.
         oneDepthLower += [[temproot, 1]]
@@ -60,7 +62,7 @@ def findPaths(root, depth, path, proj, hitproj):
         hitproj2 = hitproj or (transpose(temproot[:]) == proj)
 
         if(path == []):
-            pathList += (findPaths(transpose(temproot[:]), depth - 1, pathSoFar, proj, hitproj2))
+            pathList += (findPaths(transpose(temproot[:]), depth - 1, pathSoFar, proj, hitproj2), root[:], [False])
 
         oneDepthLower += [[transpose(temproot[:]), -1]]
 
@@ -82,9 +84,15 @@ def findPaths(root, depth, path, proj, hitproj):
                 if(list(oneDepthLower[j][0]) == list(i[0]) and oneDepthLower[j][1] != lookingFor):
                     del oneDepthLower[j]
 
+        #Determine whether there needs to be a doublet flag
+
+        if(){
+            isDoubMarked = True
+        }
+
         #Do recursion to find the rest of the paths
         for i in oneDepthLower:
-            pathList += (findPaths(list(i[0]), depth -  1, [i[1]] + path[:], proj, (hitproj or (list(i[0]) == proj))))
+            pathList += (findPaths(list(i[0]), depth -  1, [i[1]] + path[:], proj, (hitproj or (list(i[0]) == proj)), root[:], [isDoubMarked] + doubmarkings[:]))
     return pathList
 
 """
