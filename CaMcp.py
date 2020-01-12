@@ -145,9 +145,24 @@ for i in range(len(test2[0])):
         occurences += [counter]
         counter = 1
         toLookFor = test2[0][i]
+        print(toLookFor)
+    print(test2[1][i])
 occurences += [counter]
-occurences = occurences[::-1]
+#occurences = occurences[::-1]
 #Mathematica Code
+
+test2 = np.array(test2).T.tolist()
+#counter = 0
+#temp2 = []
+#for i in occurences[::-1]:
+#    temp2.append(test2[counter:counter+i])
+#    counter += i
+#temp2 = temp2[::-1]
+#temp2 = [item for sublist in temp2 for item in sublist]
+#test2 = temp2
+#print(temp2)
+test2 = np.array(test2).T.tolist()
+
 
 print("""(*Prerequisites*)
         n[a_] := (q^a - q^(-a))/(q - q^(-1))
@@ -166,6 +181,7 @@ print("""(*Prerequisites*)
 print("(*The below is also boilerplate, but it is specific to the number of strands*)")
 temp = list(set(map(lambda a: tuple(a), test3[0])))
 temp.sort()
+#temp = temp[::-1]
 test3[0] = map(lambda a: list(a), temp)
 print("Partitions = " + str(test3[0]).replace("[", "{").replace("]", "}"))
 print("Paths = " + str(occurences).replace("[", "{").replace("]", "}"))
@@ -182,7 +198,7 @@ for i in range(0, len(test2)):
     for j in range(len(test2[i])):
         test2[i][j] = "q" if test2[i][j] == -1 else "-q^(-1)"
     qList = str(test2[i]).replace("'","").replace("[","").replace("]","")
-    finalOutput = qList if i == 0 else re.sub("-q\^\(-1\), q", "B[" + str(i + 1) + "]", qList)
+    finalOutput = re.sub("-q\^\(-1\), q", "B[" + str(i + 1) + "]", qList)
     print("R" + str(i + 1) + " = DirSum[{" + str(finalOutput) + "}]")
     print("")
 
