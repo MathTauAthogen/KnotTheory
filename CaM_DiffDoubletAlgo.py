@@ -2,6 +2,7 @@
 
 import numpy as np
 import re
+import operator
 
 """
 findPaths
@@ -18,15 +19,14 @@ doubmarkings - the current list of flags to determine whether to use a doublet m
 Output: A list of data for each path from the root node down the tree of length depth, consisting of a tuple of first the leaf, whether it contains the representation, and then the path down the tree.
 """
 
-def findPaths(root, depth, path, proj, hitproj, last, doubmarkings):
+def findPaths(root, depth, path, proj, hitproj, last, twoago):
     newroot = root[:]
-    isDoubMarked = False
     #Base case
     if(depth == 0):
         if newroot != proj:
-            return [[root] + [hitproj] + path + doubmarkings];
+            return [[root] + [hitproj] + path];
         else:
-            return [[root] + [True] + path + doubmarkings];
+            return [[root] + [True] + path];
 
     downmoveplaces = list(set(newroot)) #The number of distinct values in the permutation is also equal to the number of places at which you can move down.
 
@@ -49,10 +49,11 @@ def findPaths(root, depth, path, proj, hitproj, last, doubmarkings):
         hitproj2 = hitproj or (temproot == proj)
 
         if(path == []):
-            pathList += (findPaths(temproot, depth - 1, pathSoFar, proj, hitproj2, root[:], [False]))
+            pathList += (findPaths(temproot, depth - 1, pathSoFar, proj, hitproj2, root[:], last[:]))
 
         #Generate the list of ways we can move starting from the root, and which direction to move from the root to get there.
         oneDepthLower += [[temproot, 1]]
+
 
     for i in rightmoveplaces:
         #Each part here is the same except that to add to a column, we transpose the partition to turn columns into rows, add to the row, and transpose back to turn rows into columns.
@@ -62,7 +63,7 @@ def findPaths(root, depth, path, proj, hitproj, last, doubmarkings):
         hitproj2 = hitproj or (transpose(temproot[:]) == proj)
 
         if(path == []):
-            pathList += (findPaths(transpose(temproot[:]), depth - 1, pathSoFar, proj, hitproj2), root[:], [False])
+            pathList += (findPaths(transpose(temproot[:]), depth - 1, pathSoFar, proj, hitproj2, root[:], last[:]))
 
         oneDepthLower += [[transpose(temproot[:]), -1]]
 
@@ -84,15 +85,28 @@ def findPaths(root, depth, path, proj, hitproj, last, doubmarkings):
                 if(list(oneDepthLower[j][0]) == list(i[0]) and oneDepthLower[j][1] != lookingFor):
                     del oneDepthLower[j]
 
-        #Determine whether there needs to be a doublet flag
 
-        if(){
-            isDoubMarked = True
-        }
+
+        lastTransed = transpose(twoago[:])
+        testlast = (twoago[:] + (len(root)-len(twoago)) * [0])
+        testlastTransed = (lastTransed + (len(transpose(root[:]))-len(lastTransed)) * [0])
 
         #Do recursion to find the rest of the paths
         for i in oneDepthLower:
-            pathList += (findPaths(list(i[0]), depth -  1, [i[1]] + path[:], proj, (hitproj or (list(i[0]) == proj)), root[:], [isDoubMarked] + doubmarkings[:]))
+
+            modpath = path[:]
+            # Figure out if it is a doublet
+            print(map(operator.sub, root[:], testlast))
+            print(map(operator.sub, transpose(root[:]),testlastTransed))
+            if(2 not in map(operator.sub, root[:], testlast) and 2 not in map(operator.sub, transpose(root[:]),testlastTransed)):
+                #temp = list(i)
+                #temp[1] = 2
+                #i = tuple(temp)
+                modpath[0] = 2
+
+
+
+            pathList += (findPaths(list(i[0]), depth -  1, [i[1]] + modpath, proj, (hitproj or (list(i[0]) == proj)), root[:], last[:]))
     return pathList
 
 """
@@ -128,7 +142,7 @@ n = n - 1
 print("\n Tree depth: " + str(n))
 
 #Find all paths at depth n
-test = findPaths([1], n, [], [2], False)
+test = findPaths([1], n, [], [2], False, [], [])
 
 #Transpose the matrix to retrieve the matrices we want
 test2 = np.array(test[:]).T.tolist()
@@ -204,9 +218,9 @@ print("Proj = DirSum[" + str(map(int, projmatr)).replace("[", "{").replace("]", 
 test2 = np.array(test2[1: -1][0]).T.tolist()
 for i in range(0, len(test2)):
     for j in range(len(test2[i])):
-        test2[i][j] = "q" if test2[i][j] == -1 else "-q^(-1)"
+        test2[i][j] = "q" if test2[i][j] == -1 else ("-q^(-1)" if test2[i][j] == 1 else "2")
     qList = str(test2[i]).replace("'","").replace("[","").replace("]","")
-    finalOutput = re.sub("-q\^\(-1\), q", "B[" + str(i + 1) + "]", qList)
+    finalOutput = re.sub("2, 2", "B[" + str(i + 1) + "]", qList)
     print("R" + str(i + 1) + " = DirSum[{" + str(finalOutput) + "}]")
     print("")
 
