@@ -5,6 +5,21 @@ import re
 import operator
 
 """
+sgn
+
+Input:
+a - any integer
+
+Output:
+1 if a is positive, -1 if it is negative, 0 if it is 0.
+"""
+
+def sgn(a):
+    if(a == 0):
+        return 0
+    return abs(a)/a
+
+"""
 findPaths
 
 Input:
@@ -14,12 +29,12 @@ path - The path taken to get to the root node
 proj - The partition for the representation
 hitproj - A boolean representing whether the partition has been reached in the path.
 last - the partition two times before, to determine doublets.
-doubmarkings - the current list of flags to determine whether to use a doublet matrix or not.
 
 Output: A list of data for each path from the root node down the tree of length depth, consisting of a tuple of first the leaf, whether it contains the representation, and then the path down the tree.
 """
 
 def findPaths(root, depth, path, proj, hitproj, last):
+    print("PATH:" + str(path))
     newroot = root[:]
     #Base case
     if(depth == 0):
@@ -47,21 +62,21 @@ def findPaths(root, depth, path, proj, hitproj, last):
 
         #Has the representation partition been encountered?
         hitproj2 = hitproj or (temproot == proj)
-
+        isDoublet = False
         if(path == []):
             pathList += (findPaths(temproot, depth - 1, pathSoFar, proj, hitproj2, root[:]))
         else:
             lastTransed = transpose(last[:])
             testlast = (last[:] + (len(temproot)-len(last)) * [0])
             testlastTransed = (lastTransed + (len(transpose(temproot[:]))-len(lastTransed)) * [0])
-            print(map(operator.sub, temproot[:], testlast))
-            print(map(operator.sub, transpose(temproot[:]),testlastTransed))
+            #print(map(operator.sub, temproot[:], testlast))
+            #print(map(operator.sub, transpose(temproot[:]),testlastTransed))
             if(2 not in map(operator.sub, temproot[:], testlast) and 2 not in map(operator.sub, transpose(temproot[:]),testlastTransed)):
-                oneDepthLower += [[temproot, 1, True]]
-                continue
+                isDoublet = True
 
         #Generate the list of ways we can move starting from the root, and which direction to move from the root to get there.
-        oneDepthLower += [[temproot, 1, False]]
+        oneDepthLower += [[temproot, 1, isDoublet]]
+        print(oneDepthLower)
 
 
     for i in rightmoveplaces:
@@ -70,6 +85,7 @@ def findPaths(root, depth, path, proj, hitproj, last):
         temproot = transpose(root[:])
         temproot[temproot.index(i)] += 1
         hitproj2 = hitproj or (transpose(temproot[:]) == proj)
+        isDoublet = False
 
         if(path == []):
             pathList += (findPaths(transpose(temproot[:]), depth - 1, pathSoFar, proj, hitproj2, root[:]))
@@ -77,29 +93,30 @@ def findPaths(root, depth, path, proj, hitproj, last):
             lastTransed = transpose(last[:])
             testlast = (last[:] + (len(transpose(temproot[:]))-len(last)) * [0])
             testlastTransed = (lastTransed + (len(temproot)-len(lastTransed)) * [0])
-            print(map(operator.sub, transpose(temproot[:]), testlast))
-            print(map(operator.sub, temproot[:],testlastTransed))
+            #print(map(operator.sub, transpose(temproot[:]), testlast))
+            #print(map(operator.sub, temproot[:],testlastTransed))
             if(2 not in map(operator.sub, transpose(temproot[:]), testlast) and 2 not in map(operator.sub, temproot[:],testlastTransed)):
-                oneDepthLower += [[transpose(temproot[:]), -1, True]]
-                continue
-        oneDepthLower += [[transpose(temproot[:]), -1, False]]
+                isDoublet = True
+                print(oneDepthLower)
+        oneDepthLower += [[transpose(temproot[:]), -1, isDoublet]]
+        print(oneDepthLower)
 
     if(path != []):
         test = oneDepthLower
 
         #convert the list of unhashable lists to a list of tuples, which are hashable.
         for i in range(len(test)):
-            test[i] = tuple(test[i])
+            test[i] = (tuple(test[i][0]), test[i][1], test[i][2])
 
         #Selecting the ambiguous cases, because they are the ones where with two different last moves the same final position is reached.
-        sub = list(set(filter(lambda a: test.count((a[0], -a[1])) != 0, test)))
+        sub = list(set(filter(lambda a: test.count((a[0], -sgn(a[1]), a[2])) + test.count((a[0], -2 * sgn(a[1]), a[2])) + test.count((a[0], -sgn(a[1]), not a[2])) + test.count((a[0], -2 * sgn(a[1]), not a[2])) != 0, test)))
 
         #Remove the ambiguous cases (i.e. when it is possible to go from one state to another in two different ways) by using the convention of q -> -q^{-1} and -q^{-1} -> q
         for i in sub:
-            lookingFor = -1 * path[0]
+            lookingFor = sgn(-1 * path[0])
             for j in range(len(oneDepthLower) - 1, -1, -1):
                 #Eliminate ambiguous cases that are q -> q or -q^{-1} -> -q^{-1}
-                if(list(oneDepthLower[j][0]) == list(i[0]) and oneDepthLower[j][1] != lookingFor):
+                if(list(oneDepthLower[j][0]) == list(i[0]) and sgn(oneDepthLower[j][1]) != lookingFor):
                     del oneDepthLower[j]
 
 
@@ -111,15 +128,17 @@ def findPaths(root, depth, path, proj, hitproj, last):
         #Do recursion to find the rest of the paths
         for i in oneDepthLower:
 
-            modpath = path[:]
+#           modpath = path[:]
             # Figure out if it is a doublet
             #print(map(operator.sub, root[:], testlast))
             #print(map(operator.sub, transpose(root[:]),testlastTransed))
             print(i)
+
             if(i[2] == True):
                 temp = list(i)
                 temp[1] = 2 * temp[1]
                 i = tuple(temp)
+
                 #modpath[0] = 2
             #if(2 not in map(operator.sub, root[:], testlast) and 2 not in map(operator.sub, transpose(root[:]),testlastTransed)):
                 #temp = list(i)
@@ -127,7 +146,7 @@ def findPaths(root, depth, path, proj, hitproj, last):
                 #i = tuple(temp)
             #    modpath[0] = 2
 
-            pathList += (findPaths(list(i[0]), depth -  1, [i[1]] + modpath, proj, (hitproj or (list(i[0]) == proj)), root[:]))
+            pathList += (findPaths(list(i[0]), depth - 1, [i[1]] + path[:], proj, (hitproj or (list(i[0]) == proj)), root[:]))
     return pathList
 
 """
@@ -191,6 +210,8 @@ for i in range(len(test2[0])):
         print(toLookFor)
     print(test2[1][i])
 occurences += [counter]
+print("CHECK: TOTAL PATHS")
+print(sum(occurences))
 #occurences = occurences[::-1]
 #Mathematica Code
 
@@ -205,7 +226,6 @@ test2 = np.array(test2).T.tolist()
 #test2 = temp2
 #print(temp2)
 test2 = np.array(test2).T.tolist()
-
 
 print("""(*Prerequisites*)
         n[a_] := (q^a - q^(-a))/(q - q^(-1))
