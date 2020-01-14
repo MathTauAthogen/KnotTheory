@@ -34,7 +34,6 @@ Output: A list of data for each path from the root node down the tree of length 
 """
 
 def findPaths(root, depth, path, proj, hitproj, last):
-    print("PATH:" + str(path))
     newroot = root[:]
     #Base case
     if(depth == 0):
@@ -69,14 +68,11 @@ def findPaths(root, depth, path, proj, hitproj, last):
             lastTransed = transpose(last[:])
             testlast = (last[:] + (len(temproot)-len(last)) * [0])
             testlastTransed = (lastTransed + (len(transpose(temproot[:]))-len(lastTransed)) * [0])
-            #print(map(operator.sub, temproot[:], testlast))
-            #print(map(operator.sub, transpose(temproot[:]),testlastTransed))
             if(2 not in map(operator.sub, temproot[:], testlast) and 2 not in map(operator.sub, transpose(temproot[:]),testlastTransed)):
                 isDoublet = True
 
         #Generate the list of ways we can move starting from the root, and which direction to move from the root to get there.
         oneDepthLower += [[temproot, 1, isDoublet]]
-        print(oneDepthLower)
 
 
     for i in rightmoveplaces:
@@ -93,13 +89,9 @@ def findPaths(root, depth, path, proj, hitproj, last):
             lastTransed = transpose(last[:])
             testlast = (last[:] + (len(transpose(temproot[:]))-len(last)) * [0])
             testlastTransed = (lastTransed + (len(temproot)-len(lastTransed)) * [0])
-            #print(map(operator.sub, transpose(temproot[:]), testlast))
-            #print(map(operator.sub, temproot[:],testlastTransed))
             if(2 not in map(operator.sub, transpose(temproot[:]), testlast) and 2 not in map(operator.sub, temproot[:],testlastTransed)):
                 isDoublet = True
-                print(oneDepthLower)
         oneDepthLower += [[transpose(temproot[:]), -1, isDoublet]]
-        print(oneDepthLower)
 
     if(path != []):
         test = oneDepthLower
@@ -119,32 +111,13 @@ def findPaths(root, depth, path, proj, hitproj, last):
                 if(list(oneDepthLower[j][0]) == list(i[0]) and sgn(oneDepthLower[j][1]) != lookingFor):
                     del oneDepthLower[j]
 
-
-
-        #lastTransed = transpose(twoago[:])
-        #testlast = (twoago[:] + (len(root)-len(twoago)) * [0])
-        #testlastTransed = (lastTransed + (len(transpose(root[:]))-len(lastTransed)) * [0])
-        print(oneDepthLower)
         #Do recursion to find the rest of the paths
         for i in oneDepthLower:
-
-#           modpath = path[:]
-            # Figure out if it is a doublet
-            #print(map(operator.sub, root[:], testlast))
-            #print(map(operator.sub, transpose(root[:]),testlastTransed))
-            print(i)
 
             if(i[2] == True):
                 temp = list(i)
                 temp[1] = 2 * temp[1]
                 i = tuple(temp)
-
-                #modpath[0] = 2
-            #if(2 not in map(operator.sub, root[:], testlast) and 2 not in map(operator.sub, transpose(root[:]),testlastTransed)):
-                #temp = list(i)
-                #temp[1] = 2
-                #i = tuple(temp)
-            #    modpath[0] = 2
 
             pathList += (findPaths(list(i[0]), depth - 1, [i[1]] + path[:], proj, (hitproj or (list(i[0]) == proj)), root[:]))
     return pathList
@@ -179,8 +152,6 @@ def transpose(tuperm):
 n = input("How many strands?")
 n = n - 1
 
-print("\n Tree depth: " + str(n))
-
 #Find all paths at depth n
 test = findPaths([1], n, [], [2], False, [])
 
@@ -207,25 +178,9 @@ for i in range(len(test2[0])):
         occurences += [counter]
         counter = 1
         toLookFor = test2[0][i]
-        print(toLookFor)
-    print(test2[1][i])
 occurences += [counter]
-print("CHECK: TOTAL PATHS")
-print(sum(occurences))
-#occurences = occurences[::-1]
-#Mathematica Code
 
-test2 = np.array(test2).T.tolist()
-#counter = 0
-#temp2 = []
-#for i in occurences[::-1]:
-#    temp2.append(test2[counter:counter+i])
-#    counter += i
-#temp2 = temp2[::-1]
-#temp2 = [item for sublist in temp2 for item in sublist]
-#test2 = temp2
-#print(temp2)
-test2 = np.array(test2).T.tolist()
+#Mathematica Code
 
 print("""(*Prerequisites*)
         n[a_] := (q^a - q^(-a))/(q - q^(-1))
@@ -273,6 +228,8 @@ print("""
 
 (*Begin testing cell*)
 """)
+print("Simplify[Tr[DMatrix]-((-1 + A^2)^" + str(n + 1) + " q^" + str(n + 1) + ")/(A^" + str(n + 1) + " (-1 + q^2)^" + str(n + 1) + ")]")
+
 for i in range(0, len(test2)):
     print("Simplify[Tr[DMatrix.R" + str(i + 1) + "] - (-(((-1 + A^2)^"+ str(n) +" q^"+ str(n) +")/(A^"+ str(n + 1) +" (-1 + q^2)^"+ str(n) +")))]")
     print("Simplify[Tr[DMatrix.R" + str(i + 1) + "] / (-(((-1 + A^2)^"+ str(n) +" q^"+ str(n) +")/(A^"+ str(n + 1) +" (-1 + q^2)^"+ str(n) +")))]")
