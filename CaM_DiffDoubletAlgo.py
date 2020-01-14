@@ -19,7 +19,7 @@ doubmarkings - the current list of flags to determine whether to use a doublet m
 Output: A list of data for each path from the root node down the tree of length depth, consisting of a tuple of first the leaf, whether it contains the representation, and then the path down the tree.
 """
 
-def findPaths(root, depth, path, proj, hitproj, last, twoago):
+def findPaths(root, depth, path, proj, hitproj, last):
     newroot = root[:]
     #Base case
     if(depth == 0):
@@ -49,10 +49,19 @@ def findPaths(root, depth, path, proj, hitproj, last, twoago):
         hitproj2 = hitproj or (temproot == proj)
 
         if(path == []):
-            pathList += (findPaths(temproot, depth - 1, pathSoFar, proj, hitproj2, root[:], last[:]))
+            pathList += (findPaths(temproot, depth - 1, pathSoFar, proj, hitproj2, root[:]))
+        else:
+            lastTransed = transpose(last[:])
+            testlast = (last[:] + (len(temproot)-len(last)) * [0])
+            testlastTransed = (lastTransed + (len(transpose(temproot[:]))-len(lastTransed)) * [0])
+            print(map(operator.sub, temproot[:], testlast))
+            print(map(operator.sub, transpose(temproot[:]),testlastTransed))
+            if(2 not in map(operator.sub, temproot[:], testlast) and 2 not in map(operator.sub, transpose(temproot[:]),testlastTransed)):
+                oneDepthLower += [[temproot, 1, True]]
+                continue
 
         #Generate the list of ways we can move starting from the root, and which direction to move from the root to get there.
-        oneDepthLower += [[temproot, 1]]
+        oneDepthLower += [[temproot, 1, False]]
 
 
     for i in rightmoveplaces:
@@ -63,16 +72,24 @@ def findPaths(root, depth, path, proj, hitproj, last, twoago):
         hitproj2 = hitproj or (transpose(temproot[:]) == proj)
 
         if(path == []):
-            pathList += (findPaths(transpose(temproot[:]), depth - 1, pathSoFar, proj, hitproj2, root[:], last[:]))
-
-        oneDepthLower += [[transpose(temproot[:]), -1]]
+            pathList += (findPaths(transpose(temproot[:]), depth - 1, pathSoFar, proj, hitproj2, root[:]))
+        else:
+            lastTransed = transpose(last[:])
+            testlast = (last[:] + (len(transpose(temproot[:]))-len(last)) * [0])
+            testlastTransed = (lastTransed + (len(temproot)-len(lastTransed)) * [0])
+            print(map(operator.sub, transpose(temproot[:]), testlast))
+            print(map(operator.sub, temproot[:],testlastTransed))
+            if(2 not in map(operator.sub, transpose(temproot[:]), testlast) and 2 not in map(operator.sub, temproot[:],testlastTransed)):
+                oneDepthLower += [[transpose(temproot[:]), -1, True]]
+                continue
+        oneDepthLower += [[transpose(temproot[:]), -1, False]]
 
     if(path != []):
         test = oneDepthLower
 
         #convert the list of unhashable lists to a list of tuples, which are hashable.
         for i in range(len(test)):
-            test[i] = (tuple(test[i][0]), test[i][1])
+            test[i] = tuple(test[i])
 
         #Selecting the ambiguous cases, because they are the ones where with two different last moves the same final position is reached.
         sub = list(set(filter(lambda a: test.count((a[0], -a[1])) != 0, test)))
@@ -87,26 +104,30 @@ def findPaths(root, depth, path, proj, hitproj, last, twoago):
 
 
 
-        lastTransed = transpose(twoago[:])
-        testlast = (twoago[:] + (len(root)-len(twoago)) * [0])
-        testlastTransed = (lastTransed + (len(transpose(root[:]))-len(lastTransed)) * [0])
-
+        #lastTransed = transpose(twoago[:])
+        #testlast = (twoago[:] + (len(root)-len(twoago)) * [0])
+        #testlastTransed = (lastTransed + (len(transpose(root[:]))-len(lastTransed)) * [0])
+        print(oneDepthLower)
         #Do recursion to find the rest of the paths
         for i in oneDepthLower:
 
             modpath = path[:]
             # Figure out if it is a doublet
-            print(map(operator.sub, root[:], testlast))
-            print(map(operator.sub, transpose(root[:]),testlastTransed))
-            if(2 not in map(operator.sub, root[:], testlast) and 2 not in map(operator.sub, transpose(root[:]),testlastTransed)):
+            #print(map(operator.sub, root[:], testlast))
+            #print(map(operator.sub, transpose(root[:]),testlastTransed))
+            print(i)
+            if(i[2] == True):
+                temp = list(i)
+                temp[1] = 2 * temp[1]
+                i = tuple(temp)
+                #modpath[0] = 2
+            #if(2 not in map(operator.sub, root[:], testlast) and 2 not in map(operator.sub, transpose(root[:]),testlastTransed)):
                 #temp = list(i)
                 #temp[1] = 2
                 #i = tuple(temp)
-                modpath[0] = 2
+            #    modpath[0] = 2
 
-
-
-            pathList += (findPaths(list(i[0]), depth -  1, [i[1]] + modpath, proj, (hitproj or (list(i[0]) == proj)), root[:], last[:]))
+            pathList += (findPaths(list(i[0]), depth -  1, [i[1]] + modpath, proj, (hitproj or (list(i[0]) == proj)), root[:]))
     return pathList
 
 """
@@ -142,7 +163,7 @@ n = n - 1
 print("\n Tree depth: " + str(n))
 
 #Find all paths at depth n
-test = findPaths([1], n, [], [2], False, [], [])
+test = findPaths([1], n, [], [2], False, [])
 
 #Transpose the matrix to retrieve the matrices we want
 test2 = np.array(test[:]).T.tolist()
@@ -220,7 +241,10 @@ for i in range(0, len(test2)):
     for j in range(len(test2[i])):
         test2[i][j] = "q" if test2[i][j] == -1 else ("-q^(-1)" if test2[i][j] == 1 else "2")
     qList = str(test2[i]).replace("'","").replace("[","").replace("]","")
-    finalOutput = re.sub("2, 2", "B[" + str(i + 1) + "]", qList)
+    finalOutput = re.sub(" 2, 2", "B[" + str(i + 1) + "]", qList)
+    finalOutput = re.sub("-2, 2", "B[" + str(i + 1) + "]", finalOutput)
+    finalOutput = re.sub(" 2,-2", "B[" + str(i + 1) + "]", finalOutput)
+    finalOutput = re.sub("-2,-2", "B[" + str(i + 1) + "]", finalOutput)
     print("R" + str(i + 1) + " = DirSum[{" + str(finalOutput) + "}]")
     print("")
 
