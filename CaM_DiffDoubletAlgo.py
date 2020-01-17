@@ -222,10 +222,9 @@ print("Proj = DirSum[" + str(map(int, projmatr)).replace("[", "{").replace("]", 
 test2 = np.array(test2[1: -1][0]).T.tolist()
 for i in range(0, len(test2)):
     for j in range(len(test2[i])):
-        test2[i][j] = "q" if test2[i][j] == -1 else ("-q^(-1)" if test2[i][j] == 1 else "2")
+        test2[i][j] = "q" if test2[i][j] == -1 else ("-q^(-1)" if test2[i][j] == 1 else test2[i][j])
     qList = str(test2[i]).replace("'","").replace("[","").replace("]","")
-    finalOutput = re.sub(" [0-9]*[02-9]+, \1", "B[\1]", qList)
-    finalOutput = re.sub(" [0-9]+1, \1", "B[\1]", finalOutput)
+    finalOutput = re.sub("[-]*([0-9]+?), [-]*\\1", "B[\\1]", qList)
     print("R" + str(i + 1) + " = DirSum[{" + str(finalOutput) + "}]")
     print("")
 
