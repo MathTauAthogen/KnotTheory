@@ -52,6 +52,7 @@ def findPaths(root, depth, path, proj, hitproj, last):
     oneDepthLower = []
 
     for i in downmoveplaces:
+        hookLen = 0
         #Add a down-move to the current path
         pathSoFar = [1] + path[:]
         temproot = root[:]
@@ -70,13 +71,17 @@ def findPaths(root, depth, path, proj, hitproj, last):
             testlastTransed = (lastTransed + (len(transpose(temproot[:]))-len(lastTransed)) * [0])
             if(2 not in map(operator.sub, temproot[:], testlast) and 2 not in map(operator.sub, transpose(temproot[:]),testlastTransed)):
                 isDoublet = True
+                ind1 = [i for i, x in enumerate(map(operator.sub, temproot[:], testlast)) if x == 1]
+                ind2 = [i for i, x in enumerate(map(operator.sub, transpose(temproot[:]), testlastTransed)) if x == 1]
+                hookLen = ind1[1] - ind1[0] + ind2[1] - ind2[0]
 
         #Generate the list of ways we can move starting from the root, and which direction to move from the root to get there.
-        oneDepthLower += [[temproot, 1, isDoublet]]
+        oneDepthLower += [[temproot, 1, isDoublet, hookLen]]
 
 
     for i in rightmoveplaces:
         #Each part here is the same except that to add to a column, we transpose the partition to turn columns into rows, add to the row, and transpose back to turn rows into columns.
+        hookLen = 0
         pathSoFar = [-1] + path[:]
         temproot = transpose(root[:])
         temproot[temproot.index(i)] += 1
@@ -91,14 +96,17 @@ def findPaths(root, depth, path, proj, hitproj, last):
             testlastTransed = (lastTransed + (len(temproot)-len(lastTransed)) * [0])
             if(2 not in map(operator.sub, transpose(temproot[:]), testlast) and 2 not in map(operator.sub, temproot[:],testlastTransed)):
                 isDoublet = True
-        oneDepthLower += [[transpose(temproot[:]), -1, isDoublet]]
+                ind1 = [i for i, x in enumerate(map(operator.sub, transpose(temproot[:]), testlast)) if x == 1]
+                ind2 = [i for i, x in enumerate(map(operator.sub, temproot[:], testlastTransed)) if x == 1]
+                hookLen = ind1[1] - ind1[0] + ind2[1] - ind2[0]
+        oneDepthLower += [[transpose(temproot[:]), -1, isDoublet, hookLen]]
 
     if(path != []):
         test = oneDepthLower
 
         #convert the list of unhashable lists to a list of tuples, which are hashable.
         for i in range(len(test)):
-            test[i] = (tuple(test[i][0]), test[i][1], test[i][2])
+            test[i] = (tuple(test[i][0]), test[i][1], test[i][2], test[i][3])
 
         #Selecting the ambiguous cases, because they are the ones where with two different last moves the same final position is reached.
         sub = list(set(filter(lambda a: test.count((a[0], -sgn(a[1]), a[2])) + test.count((a[0], -2 * sgn(a[1]), a[2])) + test.count((a[0], -sgn(a[1]), not a[2])) + test.count((a[0], -2 * sgn(a[1]), not a[2])) != 0, test)))
@@ -116,7 +124,7 @@ def findPaths(root, depth, path, proj, hitproj, last):
 
             if(i[2] == True):
                 temp = list(i)
-                temp[1] = 2 * temp[1]
+                temp[1] = i[3] * temp[1]
                 i = tuple(temp)
 
             pathList += (findPaths(list(i[0]), depth - 1, [i[1]] + path[:], proj, (hitproj or (list(i[0]) == proj)), root[:]))
@@ -216,10 +224,8 @@ for i in range(0, len(test2)):
     for j in range(len(test2[i])):
         test2[i][j] = "q" if test2[i][j] == -1 else ("-q^(-1)" if test2[i][j] == 1 else "2")
     qList = str(test2[i]).replace("'","").replace("[","").replace("]","")
-    finalOutput = re.sub(" 2, 2", "B[" + str(i + 1) + "]", qList)
-    finalOutput = re.sub("-2, 2", "B[" + str(i + 1) + "]", finalOutput)
-    finalOutput = re.sub(" 2,-2", "B[" + str(i + 1) + "]", finalOutput)
-    finalOutput = re.sub("-2,-2", "B[" + str(i + 1) + "]", finalOutput)
+    finalOutput = re.sub(" [0-9]*[02-9]+, \1", "B[\1]", qList)
+    finalOutput = re.sub(" [0-9]+1, \1", "B[\1]", finalOutput)
     print("R" + str(i + 1) + " = DirSum[{" + str(finalOutput) + "}]")
     print("")
 
