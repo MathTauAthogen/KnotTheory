@@ -73,7 +73,7 @@ def findPaths(root, depth, path, proj, hitproj, last):
                 isDoublet = True
                 ind1 = [i for i, x in enumerate(map(operator.sub, temproot[:], testlast)) if x == 1]
                 ind2 = [i for i, x in enumerate(map(operator.sub, transpose(temproot[:]), testlastTransed)) if x == 1]
-                hookLen = ind1[1] - ind1[0] + ind2[1] - ind2[0]
+                hookLen = abs(ind1[1] - ind1[0]) + abs(ind2[1] - ind2[0])
 
         #Generate the list of ways we can move starting from the root, and which direction to move from the root to get there.
         oneDepthLower += [[temproot, 1, isDoublet, hookLen]]
@@ -98,7 +98,7 @@ def findPaths(root, depth, path, proj, hitproj, last):
                 isDoublet = True
                 ind1 = [i for i, x in enumerate(map(operator.sub, transpose(temproot[:]), testlast)) if x == 1]
                 ind2 = [i for i, x in enumerate(map(operator.sub, temproot[:], testlastTransed)) if x == 1]
-                hookLen = ind1[1] - ind1[0] + ind2[1] - ind2[0]
+                hookLen = abs(ind1[1] - ind1[0]) + abs(ind2[1] - ind2[0])
         oneDepthLower += [[transpose(temproot[:]), -1, isDoublet, hookLen]]
 
     if(path != []):
@@ -109,7 +109,6 @@ def findPaths(root, depth, path, proj, hitproj, last):
             test[i] = (tuple(test[i][0]), test[i][1], test[i][2], test[i][3])
 
         #Selecting the ambiguous cases, because they are the ones where with two different last moves the same final position is reached.
-        #sub = list(set(filter(lambda a: test.count((a[0], -sgn(a[1]), a[2])) + test.count((a[0], -2 * sgn(a[1]), a[2])) + test.count((a[0], -sgn(a[1]), not a[2])) + test.count((a[0], -2 * sgn(a[1]), not a[2])) != 0, test)))
         sub = list(set(filter(lambda a: len(filter(lambda b: sgn(b[1]) == -1 * sgn(a[1]) and a[0] == b[0], test)) != 0, test)))
 
         #Remove the ambiguous cases (i.e. when it is possible to go from one state to another in two different ways) by using the convention of q -> -q^{-1} and -q^{-1} -> q
