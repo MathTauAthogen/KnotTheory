@@ -33,14 +33,14 @@ last - the partition two times before, to determine doublets.
 Output: A list of data for each path from the root node down the tree of length depth, consisting of a tuple of first the leaf, whether it contains the representation, and then the path down the tree.
 """
 
-def findPaths(root, depth, path, proj, hitproj, last):
+def findPaths(root, depth, path, proj, hitproj, last, statepath):
     newroot = root[:]
     #Base case
     if(depth == 0):
         if newroot != proj:
-            return [[root] + [hitproj] + path];
+            return [[root] + [hitproj] + path + [statepath]];
         else:
-            return [[root] + [True] + path];
+            return [[root] + [True] + path + [statepath]];
 
     downmoveplaces = list(set(newroot)) #The number of distinct values in the permutation is also equal to the number of places at which you can move down.
 
@@ -64,7 +64,7 @@ def findPaths(root, depth, path, proj, hitproj, last):
         hitproj2 = hitproj or (temproot == proj)
         isDoublet = False
         if(path == []):
-            pathList += (findPaths(temproot, depth - 1, pathSoFar, proj, hitproj2, root[:]))
+            pathList += (findPaths(temproot, depth - 1, pathSoFar, proj, hitproj2, root[:], [temproot] + statepath[:]))
         else:
             lastTransed = transpose(last[:])
             testlast = (last[:] + (len(temproot)-len(last)) * [0])
@@ -89,7 +89,7 @@ def findPaths(root, depth, path, proj, hitproj, last):
         isDoublet = False
 
         if(path == []):
-            pathList += (findPaths(transpose(temproot[:]), depth - 1, pathSoFar, proj, hitproj2, root[:]))
+            pathList += (findPaths(transpose(temproot[:]), depth - 1, pathSoFar, proj, hitproj2, root[:], [temproot] + statepath[:]))
         else:
             lastTransed = transpose(last[:])
             testlast = (last[:] + (len(transpose(temproot[:]))-len(last)) * [0])
@@ -127,7 +127,7 @@ def findPaths(root, depth, path, proj, hitproj, last):
                 temp[1] = i[3] * temp[1]
                 i = tuple(temp)
 
-            pathList += (findPaths(list(i[0]), depth - 1, [i[1]] + path[:], proj, (hitproj or (list(i[0]) == proj)), root[:]))
+            pathList += (findPaths(list(i[0]), depth - 1, [i[1]] + path[:], proj, (hitproj or (list(i[0]) == proj)), root[:], statepath[:] + [list(i[0])]))
     return pathList
 
 """
@@ -161,13 +161,16 @@ n = input("How many strands?")
 n = n - 1
 
 #Find all paths at depth n
-test = findPaths([1], n, [], [2], False, [])
+test = findPaths([1], n, [], [2], False, [], [])
 
 #Transpose the matrix to retrieve the matrices we want
 test2 = np.array(test[:]).T.tolist()
 
 #Move the projection matrix to the end so it isn't used in sorting, as well as reversing the list so that the first move is used first to sort
-test2 = [test2[0]] + [np.array(test2[2:][::-1]).T.tolist()] + [test2[1]]
+
+print(test2[-1])
+
+test2 = [test2[0]] + [test2[-1]] + [np.array(test2[2:-1][::-1]).T.tolist()] + [test2[1]]
 
 #Sort the paths first by the partition at the end and then by the path to get there
 test2 = np.array(test2).T.tolist()
@@ -216,10 +219,10 @@ print("""(*End second boilerplate cell*)
     (*Actual computations begin here*)
     DMatrix = Simplify[DirSum[Join @@ Table[Table[DPart[Part[Partitions, a]], Part[Paths, a]], {a, 1, Length[Partitions]}]]]
       """)
-projmatr = test3[2]
+projmatr = test3[3]
 print("Proj = DirSum[" + str(map(int, projmatr)).replace("[", "{").replace("]", "}") + "]\n")
 #Change the numbers into q and -q^{-1} and replace each instance of "-q^{-1}, q" with the corresponding B-Matrix except in R1.
-test2 = np.array(test2[1: -1][0]).T.tolist()
+test2 = np.array(test2[2: -1][0]).T.tolist()
 for i in range(0, len(test2)):
     for j in range(len(test2[i])):
         test2[i][j] = "q" if test2[i][j] == -1 else ("-q^(-1)" if test2[i][j] == 1 else test2[i][j])
