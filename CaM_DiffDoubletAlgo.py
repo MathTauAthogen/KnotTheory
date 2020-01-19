@@ -229,8 +229,12 @@ for i in range(len(test2) - 1):
 
 for i in test2:
     print(i)
-                
+
 test2 = np.array(test2).T.tolist()
+
+temp = test[2]
+test[2] = test[3]
+test[3] = temp
 
 #for i in test5:
 #    print(i)
