@@ -89,7 +89,7 @@ def findPaths(root, depth, path, proj, hitproj, last, statepath):
         isDoublet = False
 
         if(path == []):
-            pathList += (findPaths(transpose(temproot[:]), depth - 1, pathSoFar, proj, hitproj2, root[:], [temproot] + statepath[:]))
+            pathList += (findPaths(transpose(temproot[:]), depth - 1, pathSoFar, proj, hitproj2, root[:], [transpose(temproot[:])] + statepath[:]))
         else:
             lastTransed = transpose(last[:])
             testlast = (last[:] + (len(transpose(temproot[:]))-len(last)) * [0])
@@ -161,7 +161,7 @@ n = input("How many strands?")
 n = n - 1
 
 #Find all paths at depth n
-test = findPaths([1], n, [], [2], False, [], [])
+test = findPaths([1], n, [], [2], False, [], [[1]])
 
 #Transpose the matrix to retrieve the matrices we want
 test2 = np.array(test[:]).T.tolist()
@@ -205,28 +205,35 @@ test2 = np.array(test2).T.tolist()
 #            test5.append(j)
 
 for i in range(len(test2) - 1):
-    for j in range(1, n - 1):
-        if(test2[i][2][j] == sgn(test2[i][2][j]) and test2[i][2][j + 1] == test2[i + 1][2][j + 1] and test2[i][2][j + 1] == test2[i + 1][2][j + 1]):
+    for j in range(1, n):
+        print("j = " + str(j))
+        print(test2[i][1])
+        print(test2[i][2])
+        if(test2[i][2][j] == sgn(test2[i][2][j]) and test2[i][1][j - 1] == test2[i + 1][1][j - 1] and test2[i][1][j + 1] == test2[i + 1][1][j + 1]):
             last = test2[i][1][j - 1]
             temproot = test2[i][1][j + 1]
-            print(test2[i][1][j-1])
-            print(test2[i][1][j+1])
-            print(j)
             lastTransed = transpose(last[:])
             testlast = (last[:] + (len(temproot)-len(last)) * [0])
             testlastTransed = (lastTransed + (len(transpose(temproot[:]))-len(lastTransed)) * [0])
+            print(testlast)
+            print(testlastTransed)
             if(2 not in map(operator.sub, temproot, testlast) and 2 not in map(operator.sub, transpose(temproot[:]), testlastTransed)):
                 isDoublet = True
-                ind1 = [i for i, x in enumerate(map(operator.sub, temproot, testlast)) if x == 1]
-                ind2 = [i for i, x in enumerate(map(operator.sub, transpose(temproot[:]), testlastTransed)) if x == 1]
+                ind1 = [a for a, x in enumerate(map(operator.sub, temproot, testlast)) if x == 1]
+                ind2 = [a for a, x in enumerate(map(operator.sub, transpose(temproot[:]), testlastTransed)) if x == 1]
                 hookLen = abs(ind1[1] - ind1[0]) + abs(ind2[1] - ind2[0])
+                print(hookLen)
+                print(test2[i][2][j])
                 test2[i][2][j] = hookLen * test2[i][2][j]
                 test2[i + 1][2][j] = hookLen * test2[i + 1][2][j]
 
+for i in test2:
+    print(i)
+                
 test2 = np.array(test2).T.tolist()
 
-for i in test5:
-    print(i)
+#for i in test5:
+#    print(i)
 
 #Mathematica Code
 
@@ -288,3 +295,4 @@ print("""
 """)
 for i in range(0, len(test2) - 1):
     print("MatrixForm[Simplify[R" + str(i + 1) + ".R" + str(i + 2) + ".R" + str(i + 1) + "-" + "R" + str(i + 2) + ".R" + str(i + 1) + ".R" + str(i + 2) + "]]")
+
