@@ -52,7 +52,7 @@ def findPaths(root, depth, path, proj, hitproj, last, statepath):
     oneDepthLower = []
 
     for i in downmoveplaces:
-        hookLen = 1
+        hookLen = 0
         #Add a down-move to the current path
         pathSoFar = [1] + path[:]
         temproot = root[:]
@@ -73,7 +73,7 @@ def findPaths(root, depth, path, proj, hitproj, last, statepath):
                 isDoublet = True
                 ind1 = [i for i, x in enumerate(map(operator.sub, temproot[:], testlast)) if x == 1]
                 ind2 = [i for i, x in enumerate(map(operator.sub, transpose(temproot[:]), testlastTransed)) if x == 1]
-                #hookLen = abs(ind1[1] - ind1[0]) + abs(ind2[1] - ind2[0])
+                hookLen = abs(ind1[1] - ind1[0]) + abs(ind2[1] - ind2[0])
 
         #Generate the list of ways we can move starting from the root, and which direction to move from the root to get there.
         oneDepthLower += [[temproot, 1, isDoublet, hookLen]]
@@ -81,7 +81,7 @@ def findPaths(root, depth, path, proj, hitproj, last, statepath):
 
     for i in rightmoveplaces:
         #Each part here is the same except that to add to a column, we transpose the partition to turn columns into rows, add to the row, and transpose back to turn rows into columns.
-        hookLen = 1
+        hookLen = 0
         pathSoFar = [-1] + path[:]
         temproot = transpose(root[:])
         temproot[temproot.index(i)] += 1
@@ -98,7 +98,7 @@ def findPaths(root, depth, path, proj, hitproj, last, statepath):
                 isDoublet = True
                 ind1 = [i for i, x in enumerate(map(operator.sub, transpose(temproot[:]), testlast)) if x == 1]
                 ind2 = [i for i, x in enumerate(map(operator.sub, temproot[:], testlastTransed)) if x == 1]
-                #hookLen = abs(ind1[1] - ind1[0]) + abs(ind2[1] - ind2[0])
+                hookLen = abs(ind1[1] - ind1[0]) + abs(ind2[1] - ind2[0])
         oneDepthLower += [[transpose(temproot[:]), -1, isDoublet, hookLen]]
 
     if(path != []):
@@ -127,7 +127,7 @@ def findPaths(root, depth, path, proj, hitproj, last, statepath):
                 temp[1] = i[3] * temp[1]
                 i = tuple(temp)
 
-            pathList += (findPaths(list(i[0]), depth - 1, [i[1]] + path[:], proj, (hitproj or (list(i[0]) == proj)), root[:], [list(i[0])] + statepath[:]))
+            pathList += (findPaths(list(i[0]), depth - 1, [i[1]] + path[:], proj, (hitproj or (list(i[0]) == proj)), root[:], statepath[:] + [list(i[0])]))
     return pathList
 
 """
@@ -168,65 +168,28 @@ test2 = np.array(test[:]).T.tolist()
 
 #Move the projection matrix to the end so it isn't used in sorting, as well as reversing the list so that the first move is used first to sort
 
-test2 = [test2[0]] + [np.array(test2[-1]).T[::-1].T.tolist()] + [np.array(test2[2:-1][::-1]).T.tolist()] + [test2[1]]
+print(test2[-1])
+
+test2 = [test2[0]] + [test2[-1]] + [np.array(test2[2:-1][::-1]).T.tolist()] + [test2[1]]
 
 #Sort the paths first by the partition at the end and then by the path to get there
-
-test4 = np.array(test2).T.tolist()
-test4.sort()
-#test4 = np.array(test4).T.tolist()
-test2 = np.array(test4).T.tolist()
-test4 = test2
-test3 = test4[:]
+test2 = np.array(test2).T.tolist()
+test2.sort()
+test2 = np.array(test2).T.tolist()
+test3 = test2[:]
 
 #Find the number of times each partition appears; necessary to generate the D-Matrix
-toLookFor = test4[0][0]
+toLookFor = test2[0][0]
 counter = 0
 occurences = []
-partits = []
-for i in range(len(test4[0])):
-    if(test4[0][i] == toLookFor):
+for i in range(len(test2[0])):
+    if(test2[0][i] == toLookFor):
         counter += 1
     else:
         occurences += [counter]
-        partits.append(toLookFor)
         counter = 1
-        toLookFor = test4[0][i]
-partits.append(toLookFor)
+        toLookFor = test2[0][i]
 occurences += [counter]
-
-test2 = np.array(test2).T.tolist()
-
-#test5 = []
-
-#for i in partits:
-#    for j in test2:
-#        if(j[0] == list(i)):
-#            test5.append(j)
-
-for i in range(len(test2) - 1):
-    for j in range(1, n - 1):
-        if(test2[i][2][j] == sgn(test2[i][2][j]) and test2[i][2][j + 1] == test2[i + 1][2][j + 1] and test2[i][2][j + 1] == test2[i + 1][2][j + 1]):
-            last = test2[i][1][j - 1]
-            temproot = test2[i][1][j + 1]
-            print(test2[i][1][j-1])
-            print(test2[i][1][j+1])
-            print(j)
-            lastTransed = transpose(last[:])
-            testlast = (last[:] + (len(temproot)-len(last)) * [0])
-            testlastTransed = (lastTransed + (len(transpose(temproot[:]))-len(lastTransed)) * [0])
-            if(2 not in map(operator.sub, temproot, testlast) and 2 not in map(operator.sub, transpose(temproot[:]), testlastTransed)):
-                isDoublet = True
-                ind1 = [i for i, x in enumerate(map(operator.sub, temproot, testlast)) if x == 1]
-                ind2 = [i for i, x in enumerate(map(operator.sub, transpose(temproot[:]), testlastTransed)) if x == 1]
-                hookLen = abs(ind1[1] - ind1[0]) + abs(ind2[1] - ind2[0])
-                test2[i][2][j] = hookLen * test2[i][2][j]
-                test2[i + 1][2][j] = hookLen * test2[i + 1][2][j]
-
-test2 = np.array(test2).T.tolist()
-
-for i in test5:
-    print(i)
 
 #Mathematica Code
 
