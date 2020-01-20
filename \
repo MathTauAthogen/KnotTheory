@@ -168,28 +168,14 @@ test2 = np.array(test[:]).T.tolist()
 
 #Move the projection matrix to the end so it isn't used in sorting, as well as reversing the list so that the first move is used first to sort
 
-test2 = [test2[0]] + [test2[-1]] + [np.array(test2[2:-1][::-1]).T.tolist()] + [test2[1]]
+test2 = [test2[0]] + [np.array(test2[-1]).T[::-1].T.tolist()] + [np.array(test2[2:-1][::-1]).T.tolist()] + [test2[1]]
 
 #Sort the paths first by the partition at the end and then by the path to get there
 
-test4 = test2
-#temp = test4[1]
-#test4[1] = test4[2]
-#test4[2] = temp
-#test4[1] = np.array(test4[1]).T[::-1].T.tolist()
-#test4[2] = np.array(test4[2]).T[::-1].T.tolist()
-test4 = np.array(test4).T.tolist()
+test4 = np.array(test2).T.tolist()
 test4.sort()
-test4 = test4[::-1]
-test4 = np.array(test4).T.tolist()
-test4[1] = np.array(test4[1]).T[::-1].T.tolist()
-#test4[2] = np.array(test4[2]).T[::-1].T.tolist()
-#temp = test4[1]
-#test4[1] = test4[2]
-#test4[2] = temp
-
-# Flip within last entry
-test2 = test4
+test2 = np.array(test4).T.tolist()
+test4 = test2
 test3 = test4[:]
 
 #Find the number of times each partition appears; necessary to generate the D-Matrix
@@ -222,7 +208,7 @@ for i in range(len(test2) - 1):
         print("j = " + str(j))
         print(test2[i][1])
         print(test2[i][2])
-        if(test2[i][2][j] == sgn(test2[i][2][j]) and test2[i][1][j - 1] == test2[i + 1][1][j - 1] and test2[i][1][j + 1] == test2[i + 1][1][j + 1] and test2[i][1][j] != test2[i + 1][1][j]):
+        if(test2[i][2][j] == sgn(test2[i][2][j]) and test2[i][1][j - 1] == test2[i + 1][1][j - 1] and test2[i][1][j + 1] == test2[i + 1][1][j + 1]):
             last = test2[i][1][j - 1]
             temproot = test2[i][1][j + 1]
             lastTransed = transpose(last[:])
@@ -245,6 +231,10 @@ for i in test2:
 
 test2 = np.array(test2).T.tolist()
 
+temp = test[2]
+test[2] = test[3]
+test[3] = temp
+
 #for i in test5:
 #    print(i)
 
@@ -254,7 +244,8 @@ print("""(*Prerequisites*)
         n[a_] := (q^a - q^(-a))/(q - q^(-1))
         k[g_] := (A (q^(g - 1)) - (A (q^(g - 1)))^(-1))/(q^g - q^(-g))
         h[n_] := If[n >= 0, Product[k[j], {j, 1, n}], 0]
-        B[a_] := {{-1/((q^a) (n[a])), Sqrt[n[a - 1] n[a + 1]]/n[a]}, {Sqrt[n[a - 1] n[a + 1]]/n[a], q^a/n[a]}}
+        B[a_] := {{-1/((q^a) (n[a])), -Sqrt[n[a - 1] n[a + 1]]/
+    n[a]}, {-Sqrt[n[a - 1] n[a + 1]]/n[a], q^a/n[a]}}
         DirSum[c_] := ArrayFlatten@ReleaseHold@DiagonalMatrix[Hold /@ c]
         DPartM[a_] :=
         Table[Table[h[Part[a, y] - y + x], {x, 1, Length[a]}], {y, 1,
@@ -266,7 +257,7 @@ print("""(*Prerequisites*)
 print("(*The below is also boilerplate, but it is specific to the number of strands*)")
 temp = list(set(map(lambda a: tuple(a), test3[0])))
 temp.sort()
-temp = temp[::-1]
+#temp = temp[::-1]
 test3[0] = map(lambda a: list(a), temp)
 print("Partitions = " + str(test3[0]).replace("[", "{").replace("]", "}"))
 print("Paths = " + str(occurences).replace("[", "{").replace("]", "}"))
@@ -281,9 +272,9 @@ print("Proj = DirSum[" + str(map(int, projmatr)).replace("[", "{").replace("]", 
 test2 = np.array(test2[2: -1][0]).T.tolist()
 for i in range(0, len(test2)):
     for j in range(len(test2[i])):
-        test2[i][j] = "q" if test2[i][j] == 1 else ("-q^(-1)" if test2[i][j] == -1 else test2[i][j])
+        test2[i][j] = "q" if test2[i][j] == -1 else ("-q^(-1)" if test2[i][j] == 1 else test2[i][j])
     qList = str(test2[i]).replace("'","").replace("[","").replace("]","")
-    finalOutput = re.sub("-([0-9]+?), \\1", "B[\\1]", qList)
+    finalOutput = re.sub("[-]*([0-9]+?), [-]*\\1", "B[\\1]", qList)
     print("R" + str(i + 1) + " = DirSum[{" + str(finalOutput) + "}]")
     print("")
 
