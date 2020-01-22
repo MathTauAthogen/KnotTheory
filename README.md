@@ -1,3 +1,7 @@
-Files:
+Current File:
 
-CaM_DiffDoubletAlgo.py - Computes R-matrices, D-matrices, and projection matrices given the number of strands. In progress. Outputs in a form valid for Mathematica evaluation, for future evaluation of coloured knot polynomials.
+RMatrixFinal.py
+
+It should be relatively self-explanatory when run; just begin copying at (*Prerequisites*) into a new Mathematica file and then evaluate.
+
+RMatrixFinal is not done yet.
