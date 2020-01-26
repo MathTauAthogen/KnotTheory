@@ -157,6 +157,10 @@ def transpose(tuperm):
     except:
         return returnValue
 
+def allBut(a, b):
+    testa = a[:]
+    return testa[:b] + testa[b + 1:]
+
 n = input("How many strands?")
 n = n - 1
 
@@ -205,27 +209,29 @@ test2 = np.array(test2).T.tolist()
 #            test5.append(j)
 
 for i in range(len(test2) - 1):
-    for j in range(1, n):
-        print("j = " + str(j))
-        print(test2[i][1])
-        print(test2[i][2])
-        if(test2[i][2][j] == sgn(test2[i][2][j]) and test2[i][1][j - 1] == test2[i + 1][1][j - 1] and test2[i][1][j + 1] == test2[i + 1][1][j + 1]):
-            last = test2[i][1][j - 1]
-            temproot = test2[i][1][j + 1]
-            lastTransed = transpose(last[:])
-            testlast = (last[:] + (len(temproot)-len(last)) * [0])
-            testlastTransed = (lastTransed + (len(transpose(temproot[:]))-len(lastTransed)) * [0])
-            print(testlast)
-            print(testlastTransed)
-            if(2 not in map(operator.sub, temproot, testlast) and 2 not in map(operator.sub, transpose(temproot[:]), testlastTransed)):
-                isDoublet = True
-                ind1 = [a for a, x in enumerate(map(operator.sub, temproot, testlast)) if x == 1]
-                ind2 = [a for a, x in enumerate(map(operator.sub, transpose(temproot[:]), testlastTransed)) if x == 1]
-                hookLen = abs(ind1[1] - ind1[0]) + abs(ind2[1] - ind2[0])
-                print(hookLen)
-                print(test2[i][2][j])
-                test2[i][2][j] = hookLen * test2[i][2][j]
-                test2[i + 1][2][j] = hookLen * test2[i + 1][2][j]
+    for k in range(i + 1, len(test2) - 1):
+        for j in range(1, n):
+            print("j = " + str(j))
+            print(test2[i][1])
+            if(type(test2[i][2][j]) != tuple and sgn(test2[i][2][j]) == 1 and sgn(test2[k][2][j]) == -1 and allBut(test2[i][1], j) == allBut(test2[k][1], j)):
+                last = test2[i][1][j - 1]
+                temproot = test2[i][1][j + 1]
+                print(test2[k][2])
+                lastTransed = transpose(last[:])
+                testlast = (last[:] + (len(temproot) - len(last)) * [0])
+                testlastTransed = (lastTransed + (len(transpose(temproot[:]))-len(lastTransed)) * [0])
+                print(testlast)
+                print(testlastTransed)
+                if(2 not in map(operator.sub, temproot, testlast) and 2 not in map(operator.sub, transpose(temproot[:]), testlastTransed)):
+                    print("In!")
+                    isDoublet = True
+                    ind1 = [a for a, x in enumerate(map(operator.sub, temproot, testlast)) if x == 1]
+                    ind2 = [a for a, x in enumerate(map(operator.sub, transpose(temproot[:]), testlastTransed)) if x == 1]
+                    hookLen = abs(ind1[1] - ind1[0]) + abs(ind2[1] - ind2[0])
+                    print(hookLen)
+                    print(test2[i][2][j])
+                    test2[i][2][j] = (k - i, hookLen, i + 1)
+                    test2[k][2][j] = 0
 
 for i in test2:
     print(i)
@@ -241,13 +247,22 @@ test[3] = temp
 
 #Mathematica Code
 
-print("""(*Prerequisites*)
+print("(*Prerequisites*)")
+print("pathNum = " + str(sum(occurences)))
+
+print("""
+        q[l_, i_] := (m = Table[Table[0, pathNum], pathNum]; If[i == 1, m[[l, l]] = q, m[[l,l]] = -q^(-1)]; Return[m])
         n[a_] := (q^a - q^(-a))/(q - q^(-1))
         k[g_] := (A (q^(g - 1)) - (A (q^(g - 1)))^(-1))/(q^g - q^(-g))
         h[n_] := If[n >= 0, Product[k[j], {j, 1, n}], 0]
-        B[a_] := {{-1/((q^a) (n[a])), -Sqrt[n[a - 1] n[a + 1]]/
-    n[a]}, {-Sqrt[n[a - 1] n[a + 1]]/n[a], q^a/n[a]}}
+        B[g_, a_, b_] := (m = Table[Table[0, pathNum], pathNum];
+        m[[b, b]] = -q^(-a)/n[a];
+        m[[b, b + g]] = -Sqrt[n[a - 1] n[a + 1]]/n[a];
+        m[[b + g, b]] = -Sqrt[n[a - 1] n[a + 1]]/n[a];
+        m[[b + g, b + g]] = q^(a)/n[a];
+        Return[m])
         DirSum[c_] := ArrayFlatten@ReleaseHold@DiagonalMatrix[Hold /@ c]
+        SumMatrs[c_] := (m = Table[Table[0, pathNum], pathNum]; Do[m = m + elem, {elem, c}]; Return[m])
         DPartM[a_] :=
         Table[Table[h[Part[a, y] - y + x], {x, 1, Length[a]}], {y, 1,
    Length[a]}]
@@ -273,10 +288,11 @@ print("Proj = DirSum[" + str(map(int, projmatr)).replace("[", "{").replace("]", 
 test2 = np.array(test2[2: -1][0]).T.tolist()
 for i in range(0, len(test2)):
     for j in range(len(test2[i])):
-        test2[i][j] = "q" if test2[i][j] == -1 else ("-q^(-1)" if test2[i][j] == 1 else test2[i][j])
-    qList = str(test2[i]).replace("'","").replace("[","").replace("]","")
-    finalOutput = re.sub("[-]*([0-9]+?), [-]*\\1", "B[\\1]", qList)
-    print("R" + str(i + 1) + " = DirSum[{" + str(finalOutput) + "}]")
+        test2[i][j] = "q[" + str(j + 1) + ", 1]" if test2[i][j] == -1 else ( "q[" + str(j + 1) + ", -1]" if test2[i][j] == 1 else test2[i][j])
+    qList = str(test2[i]).replace("'","").replace("[q","q").replace("]]","]").replace("[B","B")
+    finalOutput = re.sub(", 0", "", qList)
+    finalOutput = re.sub("[^\^]\((.*?)\)", "B[\\1]", finalOutput)
+    print("R" + str(i + 1) + " = SumMatrs[{" + str(finalOutput) + "}]")
     print("")
 
 print("""
@@ -299,4 +315,3 @@ print("""
 """)
 for i in range(0, len(test2) - 1):
     print("MatrixForm[Simplify[R" + str(i + 1) + ".R" + str(i + 2) + ".R" + str(i + 1) + "-" + "R" + str(i + 2) + ".R" + str(i + 1) + ".R" + str(i + 2) + "]]")
-
