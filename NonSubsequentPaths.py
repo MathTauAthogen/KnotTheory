@@ -39,17 +39,18 @@ def sgn(a):
 findPaths
 
 Input:
-root - The last visited node in the tree
-depth - Depth still to go in the tree
-path - The path taken to get to the root node
-proj - The partition for the representation
-hitproj - A boolean representing whether the partition has been reached in the path.
-last - the partition two times before, to determine doublets.
+root - The current partition.
+depth - Depth still to go in the tree.
+path - The path taken to get to where we are.
+proj - The partition for the representation.
+hitproj - A boolean representing whether the representation has been reached in the path.
+last - The last partition encountered in the path.
 
 Output: A list of data for each path from the root node down the tree of length depth, consisting of a tuple of first the leaf, whether it contains the representation, and then the path down the tree.
 """
 
 def findPaths(root, depth, path, proj, hitproj, last, statepath):
+    pathList = []
     newroot = root[:]
     #Base case
     if(depth == 0):
@@ -62,13 +63,10 @@ def findPaths(root, depth, path, proj, hitproj, last, statepath):
 
     rightmoveplaces = list(set(transpose(newroot))) #The number of distinct rows is also equal to the number of places at which you can move right.
 
-    pathList = []
-
     #oneDepthLower will be a list of tuples of first the next node down the tree, and then whether a move right or down was used to get there.
     oneDepthLower = []
 
     for i in downmoveplaces:
-        hookLen = 1
         #Add a down-move to the current path
         pathSoFar = [1] + path[:]
         temproot = root[:]
@@ -78,72 +76,48 @@ def findPaths(root, depth, path, proj, hitproj, last, statepath):
 
         #Has the representation partition been encountered?
         hitproj2 = hitproj or (temproot == proj)
-        isDoublet = False
         if(path == []):
             pathList += (findPaths(temproot, depth - 1, pathSoFar, proj, hitproj2, root[:], [temproot] + statepath[:]))
-        else:
-            lastTransed = transpose(last[:])
-            testlast = (last[:] + (len(temproot)-len(last)) * [0])
-            testlastTransed = (lastTransed + (len(transpose(temproot[:]))-len(lastTransed)) * [0])
-            if(2 not in map(operator.sub, temproot[:], testlast) and 2 not in map(operator.sub, transpose(temproot[:]),testlastTransed)):
-                isDoublet = True
-                ind1 = [i for i, x in enumerate(map(operator.sub, temproot[:], testlast)) if x == 1]
-                ind2 = [i for i, x in enumerate(map(operator.sub, transpose(temproot[:]), testlastTransed)) if x == 1]
-                #hookLen = abs(ind1[1] - ind1[0]) + abs(ind2[1] - ind2[0])
 
         #Generate the list of ways we can move starting from the root, and which direction to move from the root to get there.
-        oneDepthLower += [[temproot, 1, isDoublet, hookLen]]
+        oneDepthLower += [[temproot, 1]]
 
 
     for i in rightmoveplaces:
         #Each part here is the same except that to add to a column, we transpose the partition to turn columns into rows, add to the row, and transpose back to turn rows into columns.
-        hookLen = 1
         pathSoFar = [-1] + path[:]
         temproot = transpose(root[:])
+
         temproot[temproot.index(i)] += 1
         hitproj2 = hitproj or (transpose(temproot[:]) == proj)
-        isDoublet = False
 
         if(path == []):
             pathList += (findPaths(transpose(temproot[:]), depth - 1, pathSoFar, proj, hitproj2, root[:], [transpose(temproot[:])] + statepath[:]))
-        else:
-            lastTransed = transpose(last[:])
-            testlast = (last[:] + (len(transpose(temproot[:]))-len(last)) * [0])
-            testlastTransed = (lastTransed + (len(temproot)-len(lastTransed)) * [0])
-            if(2 not in map(operator.sub, transpose(temproot[:]), testlast) and 2 not in map(operator.sub, temproot[:],testlastTransed)):
-                isDoublet = True
-                ind1 = [i for i, x in enumerate(map(operator.sub, transpose(temproot[:]), testlast)) if x == 1]
-                ind2 = [i for i, x in enumerate(map(operator.sub, temproot[:], testlastTransed)) if x == 1]
-                #hookLen = abs(ind1[1] - ind1[0]) + abs(ind2[1] - ind2[0])
-        oneDepthLower += [[transpose(temproot[:]), -1, isDoublet, hookLen]]
+
+        oneDepthLower += [[transpose(temproot[:]), -1]]
 
     if(path != []):
         test = oneDepthLower
 
+    #Done with path-finding.
+
         #convert the list of unhashable lists to a list of tuples, which are hashable.
         for i in range(len(test)):
-            test[i] = (tuple(test[i][0]), test[i][1], test[i][2], test[i][3])
+            test[i] = (tuple(test[i][0]), test[i][1])
 
-        #Selecting the ambiguous cases, because they are the ones where with two different last moves the same final position is reached.
+        #Selecting the ambiguous cases. These are the ones that pass through the same 2 subsequent partitions but go there in two different ways.
         sub = list(set(filter(lambda a: len(filter(lambda b: sgn(b[1]) == -1 * sgn(a[1]) and a[0] == b[0], test)) != 0, test)))
 
-        #Remove the ambiguous cases (i.e. when it is possible to go from one state to another in two different ways) by using the convention of q -> -q^{-1} and -q^{-1} -> q
+        #Remove the ambiguous cases using contents.
         for i in sub:
-            lookingForSign = -1 * sgn(content(last) + content(i[0]) - content(root) - content(root))
-            lookingFor = sgn(lookingForSign) #* path[0])
+            lookingFor = -1 * sgn(content(last) + content(i[0]) - content(root) - content(root))
             for j in range(len(oneDepthLower) - 1, -1, -1):
-                #Eliminate ambiguous cases that are q -> q or -q^{-1} -> -q^{-1}
+                #Eliminate ambiguous cases
                 if(list(oneDepthLower[j][0]) == list(i[0]) and sgn(oneDepthLower[j][1]) != lookingFor):
                     del oneDepthLower[j]
 
         #Do recursion to find the rest of the paths
         for i in oneDepthLower:
-
-            if(i[2] == True):
-                temp = list(i)
-                temp[1] = i[3] * temp[1]
-                i = tuple(temp)
-
             pathList += (findPaths(list(i[0]), depth - 1, [i[1]] + path[:], proj, (hitproj or (list(i[0]) == proj)), root[:], [list(i[0])] + statepath[:]))
     return pathList
 
@@ -179,10 +153,12 @@ def allBut(a, b):
     return testa[:b] + testa[b + 1:]
 
 n = input("How many strands?")
+rep = input("What (comma-separated) representation?")
+formattedRep = map(int, str(rep).replace(" ", "").split(","))
 n = n - 1
 
 #Find all paths at depth n
-test = findPaths([1], n, [], [2], False, [], [[1]])
+test = findPaths([1], n, [], formattedRep, False, [], [[1]])
 
 #Transpose the matrix to retrieve the matrices we want
 test2 = np.array(test[:]).T.tolist()
@@ -195,7 +171,6 @@ test2 = [test2[0]] + [np.array(test2[-1]).T[::-1].T.tolist()] + [np.array(test2[
 
 test4 = np.array(test2).T.tolist()
 test4.sort()
-#test4 = np.array(test4).T.tolist()
 test2 = np.array(test4).T.tolist()
 test4 = test2
 test3 = test4[:]
@@ -204,63 +179,41 @@ test3 = test4[:]
 toLookFor = test4[0][0]
 counter = 0
 occurences = []
-partits = []
+
 for i in range(len(test4[0])):
     if(test4[0][i] == toLookFor):
         counter += 1
     else:
         occurences += [counter]
-        partits.append(toLookFor)
         counter = 1
         toLookFor = test4[0][i]
-partits.append(toLookFor)
 occurences += [counter]
 
 test2 = np.array(test2).T.tolist()
 
-#test5 = []
-
-#for i in partits:
-#    for j in test2:
-#        if(j[0] == list(i)):
-#            test5.append(j)
-
+#Find the doublets and mark them.
 for i in range(len(test2) - 1):
     for k in range(i + 1, len(test2) - 1):
         for j in range(1, n):
-            print("j = " + str(j))
-            print(test2[i][1])
             if(type(test2[i][2][j]) != tuple and sgn(test2[i][2][j]) == 1 and sgn(test2[k][2][j]) == -1 and allBut(test2[i][1], j) == allBut(test2[k][1], j)):
                 last = test2[i][1][j - 1]
                 temproot = test2[i][1][j + 1]
-                print(test2[k][2])
                 lastTransed = transpose(last[:])
                 testlast = (last[:] + (len(temproot) - len(last)) * [0])
                 testlastTransed = (lastTransed + (len(transpose(temproot[:]))-len(lastTransed)) * [0])
-                print(testlast)
-                print(testlastTransed)
                 if(2 not in map(operator.sub, temproot, testlast) and 2 not in map(operator.sub, transpose(temproot[:]), testlastTransed)):
-                    print("In!")
                     isDoublet = True
                     ind1 = [a for a, x in enumerate(map(operator.sub, temproot, testlast)) if x == 1]
                     ind2 = [a for a, x in enumerate(map(operator.sub, transpose(temproot[:]), testlastTransed)) if x == 1]
                     hookLen = abs(ind1[1] - ind1[0]) + abs(ind2[1] - ind2[0])
-                    print(hookLen)
-                    print(test2[i][2][j])
                     test2[i][2][j] = (k - i, hookLen, i + 1)
                     test2[k][2][j] = 0
-
-for i in test2:
-    print(i)
 
 test2 = np.array(test2).T.tolist()
 
 temp = test[2]
 test[2] = test[3]
 test[3] = temp
-
-#for i in test5:
-#    print(i)
 
 #Mathematica Code
 
@@ -290,8 +243,8 @@ print("""
 print("(*The below is also boilerplate, but it is specific to the number of strands*)")
 temp = list(set(map(lambda a: tuple(a), test3[0])))
 temp.sort()
-#temp = temp[::-1]
 test3[0] = map(lambda a: list(a), temp)
+
 print("Partitions = " + str(test3[0]).replace("[", "{").replace("]", "}"))
 print("Paths = " + str(occurences).replace("[", "{").replace("]", "}"))
 print("""(*End second boilerplate cell*)
@@ -300,7 +253,9 @@ print("""(*End second boilerplate cell*)
     DMatrix = Simplify[DirSum[Join @@ Table[Table[DPart[Part[Partitions, a]], Part[Paths, a]], {a, 1, Length[Partitions]}]]]
       """)
 projmatr = test3[3]
+
 print("Proj = DirSum[" + str(map(int, projmatr)).replace("[", "{").replace("]", "}") + "]\n")
+
 #Change the numbers into q and -q^{-1} and replace each instance of "-q^{-1}, q" with the corresponding B-Matrix except in R1.
 test2 = np.array(test2[2: -1][0]).T.tolist()
 for i in range(0, len(test2)):
@@ -314,24 +269,4 @@ for i in range(0, len(test2)):
 
 print("""
 (*End computation cell*)
-
-(*Begin testing cell*)
 """)
-print("Simplify[Tr[DMatrix]-((-1 + A^2)^" + str(n + 1) + " q^" + str(n + 1) + ")/(A^" + str(n + 1) + " (-1 + q^2)^" + str(n + 1) + ")]")
-
-for i in range(0, len(test2)):
-    print("Simplify[Tr[DMatrix.R" + str(i + 1) + "] - (-(((-1 + A^2)^"+ str(n) +" q^"+ str(n) +")/(A^"+ str(n + 1) +" (-1 + q^2)^"+ str(n) +")))]")
-    print("Simplify[Tr[DMatrix.R" + str(i + 1) + "] / (-(((-1 + A^2)^"+ str(n) +" q^"+ str(n) +")/(A^"+ str(n + 1) +" (-1 + q^2)^"+ str(n) +")))]")
-print("""
-(*Begin testing cell*)
-""")
-for i in range(0, len(test2)):
-    print("Simplify[R" + str(i + 1) + "]")
-print("""
-(*Begin testing cell*)
-""")
-for i in range(0, len(test2) - 1):
-    print("MatrixForm[Simplify[R" + str(i + 1) + ".R" + str(i + 2) + ".R" + str(i + 1) + "-" + "R" + str(i + 2) + ".R" + str(i + 1) + ".R" + str(i + 2) + "]]")
-
-print("TESTING")
-print(content([2,2,2])- content([2,2,1]))
