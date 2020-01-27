@@ -5,6 +5,22 @@ import re
 import operator
 
 """
+content
+
+Input:
+p - partition
+
+Output:
+the content of the partition
+"""
+def content(p):
+    cont = 0
+    for i in range(len(p)):
+        cont += p[i] * i
+        cont -= p[i] * (p[i]-1)/2
+    return cont
+
+"""
 sgn
 
 Input:
@@ -113,7 +129,8 @@ def findPaths(root, depth, path, proj, hitproj, last, statepath):
 
         #Remove the ambiguous cases (i.e. when it is possible to go from one state to another in two different ways) by using the convention of q -> -q^{-1} and -q^{-1} -> q
         for i in sub:
-            lookingFor = sgn(-1 * path[0])
+            lookingForSign = -1 * sgn(content(last) + content(i[0]) - content(root) - content(root))
+            lookingFor = sgn(lookingForSign) #* path[0])
             for j in range(len(oneDepthLower) - 1, -1, -1):
                 #Eliminate ambiguous cases that are q -> q or -q^{-1} -> -q^{-1}
                 if(list(oneDepthLower[j][0]) == list(i[0]) and sgn(oneDepthLower[j][1]) != lookingFor):
@@ -315,3 +332,6 @@ print("""
 """)
 for i in range(0, len(test2) - 1):
     print("MatrixForm[Simplify[R" + str(i + 1) + ".R" + str(i + 2) + ".R" + str(i + 1) + "-" + "R" + str(i + 2) + ".R" + str(i + 1) + ".R" + str(i + 2) + "]]")
+
+print("TESTING")
+print(content([2,2,2])- content([2,2,1]))
