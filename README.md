@@ -1,7 +1,3 @@
-Current File:
+Just a little repo for my PRIMES-USA 2020 project.
 
-RMatrixFinal.py
-
-It should be relatively self-explanatory when run; just begin copying at (*Prerequisites*) into a new Mathematica file and then evaluate.
-
-RMatrixFinal is not done yet.
+I'm doing knot theory research under Dr. Yakov Kononov.
