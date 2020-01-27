@@ -75,7 +75,7 @@ def findPaths(root, depth, path, proj, hitproj, last, statepath):
         temproot[temproot.index(i)] += 1
 
         #Has the representation partition been encountered?
-        hitproj2 = hitproj or (temproot == proj)
+        hitproj2 = hitproj or (temproot == proj) or (root == proj) #The second case is for the fundamental representation
         if(path == []):
             pathList += (findPaths(temproot, depth - 1, pathSoFar, proj, hitproj2, root[:], [temproot] + statepath[:]))
 
@@ -89,7 +89,7 @@ def findPaths(root, depth, path, proj, hitproj, last, statepath):
         temproot = transpose(root[:])
 
         temproot[temproot.index(i)] += 1
-        hitproj2 = hitproj or (transpose(temproot[:]) == proj)
+        hitproj2 = hitproj or (transpose(temproot[:]) == proj) or (root == proj)
 
         if(path == []):
             pathList += (findPaths(transpose(temproot[:]), depth - 1, pathSoFar, proj, hitproj2, root[:], [transpose(temproot[:])] + statepath[:]))
@@ -153,9 +153,10 @@ def allBut(a, b):
     return testa[:b] + testa[b + 1:]
 
 n = input("How many strands?")
+cables = input("Cabled how many times?")
 rep = input("What (comma-separated) representation?")
 formattedRep = map(int, str(rep).replace(" ", "").split(","))
-n = n - 1
+n = n * cables - 1
 
 #Find all paths at depth n
 test = findPaths([1], n, [], formattedRep, False, [], [[1]])
@@ -255,6 +256,7 @@ print("""(*End second boilerplate cell*)
 projmatr = test3[3]
 
 print("Proj = DirSum[" + str(map(int, projmatr)).replace("[", "{").replace("]", "}") + "]\n")
+print("ComputePoly[c_] := (m = Proj.DMatrix; Do[m = m.elem, {elem, c}]; Return[Tr[m]])")
 
 #Change the numbers into q and -q^{-1} and replace each instance of "-q^{-1}, q" with the corresponding B-Matrix except in R1.
 test2 = np.array(test2[2: -1][0]).T.tolist()
@@ -266,7 +268,25 @@ for i in range(0, len(test2)):
     finalOutput = re.sub("[^\^]\((.*?)\)", "B[\\1]", finalOutput)
     print("R" + str(i + 1) + " = SumMatrs[{" + str(finalOutput) + "}]")
     print("")
-
+matrixStr = "r = {"
+for i in range((n + 1)/cables - 1):
+    if(cables != 1):
+        cabled = []
+        center = cables * (i + 1)
+        for j in range(1, cables):
+            for k in range(center - j, center + j + 1, 2):
+                cabled += [k]
+        cabled = cabled + cabled[::-1][(n+1)/cables:] + [center]
+        cabledStr = "R"+str(center)
+        for j in cabled:
+            cabledStr += ".R"+str(j)
+        matrixStr += (cabledStr + ", ")
+    else:
+        matrixStr += ("R"+str(i + 1) + ", ")
+matrixStr = matrixStr[:-2]
+matrixStr += "}"
+print(matrixStr)
 print("""
+PolyFromBraidWord[c_] := (matrixList = {}; Do[matrixList = Append[matrixList, If[elem > 0,r[[elem]],Inverse[r[[-elem]]]]], {elem, c}];Return[Simplify[ComputePoly[matrixList]]])
 (*End computation cell*)
 """)
