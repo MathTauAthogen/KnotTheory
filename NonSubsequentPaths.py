@@ -106,7 +106,7 @@ def findPaths(root, depth, path, proj, hitproj, last, statepath):
             test[i] = (tuple(test[i][0]), test[i][1])
 
         #Selecting the ambiguous cases. These are the ones that pass through the same 2 subsequent partitions but go there in two different ways.
-        sub = list(set(filter(lambda a: len(filter(lambda b: sgn(b[1]) == -1 * sgn(a[1]) and a[0] == b[0], test)) != 0, test)))
+        sub = list(set(filter(lambda a: len(list(filter(lambda b: sgn(b[1]) == -1 * sgn(a[1]) and a[0] == b[0], test))) != 0, test)))
 
         #Remove the ambiguous cases using contents.
         for i in sub:
@@ -152,8 +152,8 @@ def allBut(a, b):
     testa = a[:]
     return testa[:b] + testa[b + 1:]
 
-n = input("How many strands?")
-cables = input("Cabled how many times?")
+n = int(input("How many strands?"))
+cables = int(input("Cabled how many times?"))
 rep = input("What (comma-separated) representation?")
 formattedRep = map(int, str(rep).replace(" ", "").split(","))
 n = n * cables - 1
@@ -246,7 +246,7 @@ temp = list(set(map(lambda a: tuple(a), test3[0])))
 temp.sort()
 test3[0] = map(lambda a: list(a), temp)
 
-print("Partitions = " + str(test3[0]).replace("[", "{").replace("]", "}"))
+print("Partitions = " + str(list(test3[0])).replace("[", "{").replace("]", "}"))
 print("Paths = " + str(occurences).replace("[", "{").replace("]", "}"))
 print("""(*End second boilerplate cell*)
 
@@ -255,7 +255,7 @@ print("""(*End second boilerplate cell*)
       """)
 projmatr = test3[3]
 
-print("Proj = DirSum[" + str(map(int, projmatr)).replace("[", "{").replace("]", "}") + "]\n")
+print("Proj = DirSum[" + str(list(map(int, projmatr))).replace("[", "{").replace("]", "}") + "]\n")
 print("ComputePoly[c_] := (m = Proj.DMatrix; Do[m = m.elem, {elem, c}]; Return[Tr[m]])")
 
 #Change the numbers into q and -q^{-1} and replace each instance of "-q^{-1}, q" with the corresponding B-Matrix except in R1.
@@ -269,14 +269,14 @@ for i in range(0, len(test2)):
     print("R" + str(i + 1) + " = SumMatrs[{" + str(finalOutput) + "}]")
     print("")
 matrixStr = "r = {"
-for i in range((n + 1)/cables - 1):
+for i in range(int((n + 1)/cables) - 1):
     if(cables != 1):
         cabled = []
         center = cables * (i + 1)
         for j in range(1, cables):
             for k in range(center - j, center + j + 1, 2):
                 cabled += [k]
-        cabled = cabled + cabled[::-1][(n+1)/cables:] + [center]
+        cabled = cabled + cabled[::-1][int((n+1)/cables):] + [center]
         cabledStr = "R"+str(center)
         for j in cabled:
             cabledStr += ".R"+str(j)

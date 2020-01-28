@@ -158,7 +158,7 @@ def allBut(a, b):
 n = int(input("How many strands?"))
 cables = int(input("Cabled how many times?"))
 rep = input("What (comma-separated) representation?")
-formattedRep = map(int, str(rep).replace(" ", "").split(","))
+formattedRep = list(map(int, str(rep).replace(" ", "").split(",")))
 n = n * cables - 1
 
 #Find all paths at depth n
@@ -247,14 +247,13 @@ temp = list(set(map(lambda a: tuple(a), test3[0])))
 temp.sort()
 test3[0] = map(lambda a: list(a), temp)
 
-session.evaluate(wlexpr("Partitions = " + str(test3[0]).replace("[", "{").replace("]", "}")))
+session.evaluate(wlexpr("Partitions = " + str(list(test3[0])).replace("[", "{").replace("]", "}")))
 session.evaluate(wlexpr("Paths = " + str(occurences).replace("[", "{").replace("]", "}")))
 session.evaluate(wlexpr("""
     DMatrix = Simplify[DirSum[Join @@ Table[Table[DPart[Part[Partitions, a]], Part[Paths, a]], {a, 1, Length[Partitions]}]]]
       """))
 projmatr = test3[3]
-
-session.evaluate(wlexpr("Proj = DirSum[" + str(map(int, projmatr)).replace("[", "{").replace("]", "}") + "]\n"))
+session.evaluate(wlexpr("Proj = DirSum[" + str(list(map(int, projmatr))).replace("[", "{").replace("]", "}") + "]\n"))
 session.evaluate(wlexpr("ComputePoly[c_] := (m = Proj.DMatrix; Do[m = m.elem, {elem, c}]; Return[Tr[m]])"))
 
 #Change the numbers into q and -q^{-1} and replace each instance of "-q^{-1}, q" with the corresponding B-Matrix except in R1.
@@ -267,14 +266,14 @@ for i in range(0, len(test2)):
     finalOutput = re.sub("[^\^]\((.*?)\)", "B[\\1]", finalOutput)
     session.evaluate(wlexpr("R" + str(i + 1) + " = SumMatrs[{" + str(finalOutput) + "}]"))
 matrixStr = "r = {"
-for i in range((n + 1)/cables - 1):
+for i in range(int((n + 1)/cables) - 1):
     if(cables != 1):
         cabled = []
         center = cables * (i + 1)
         for j in range(1, cables):
             for k in range(center - j, center + j + 1, 2):
                 cabled += [k]
-        cabled = cabled + cabled[::-1][(n+1)/cables:] + [center]
+        cabled = cabled + cabled[::-1][int((n+1)/cables):] + [center]
         cabledStr = "R"+str(center)
         for j in cabled:
             cabledStr += ".R"+str(j)
@@ -284,9 +283,8 @@ for i in range((n + 1)/cables - 1):
 matrixStr = matrixStr[:-2]
 matrixStr += "}"
 session.evaluate(wlexpr(matrixStr))
-session.evaluate(wlexpr("""
-PolyFromBraidWord[c_] := (matrixList = {}; Do[matrixList = Append[matrixList, If[elem > 0,r[[elem]],Inverse[r[[-elem]]]]], {elem, c}];Return[Simplify[ComputePoly[matrixList]]])
-"""))
+session.evaluate(wlexpr("PolyFromBraidWord[c_] := (matrixList = {}; Do[matrixList = Append[matrixList, If[elem > 0,r[[elem]],Inverse[r[[-elem]]]]], {elem, c}];Return[Simplify[ComputePoly[matrixList]]])"))
 while True:
-    braid = input("Please enter a comma-separated braid word.")
-    print(session.evaluate(wlexpr(str(braid).replace("[", "{").replace("]", "}"))))
+    print(session.evaluate(wlexpr(input("Command?"))))
+    #braid = input("Please enter a comma-separated braid word.")
+    #print(session.evaluate(wlexpr("TeXForm[PolyFromBraidWord[{" + str(braid) + "}]]")))
