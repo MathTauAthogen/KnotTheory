@@ -178,7 +178,6 @@ test4.sort()
 test2 = np.array(test4).T.tolist()
 test4 = test2
 test3 = test4[:]
-
 #Find the number of times each partition appears; necessary to generate the D-Matrix
 toLookFor = test4[0][0]
 counter = 0
@@ -194,6 +193,9 @@ for i in range(len(test4[0])):
 occurences += [counter]
 
 test2 = np.array(test2).T.tolist()
+
+for i in test2:
+    print(i)
 
 #Find the doublets and mark them.
 for i in range(len(test2) - 1):
@@ -218,6 +220,8 @@ test2 = np.array(test2).T.tolist()
 temp = test[2]
 test[2] = test[3]
 test[3] = temp
+
+print(test2[3])
 
 #Mathematica Code
 
@@ -252,7 +256,7 @@ session.evaluate(wlexpr("Paths = " + str(occurences).replace("[", "{").replace("
 session.evaluate(wlexpr("""
     DMatrix = Simplify[DirSum[Join @@ Table[Table[DPart[Part[Partitions, a]], Part[Paths, a]], {a, 1, Length[Partitions]}]]]
       """))
-projmatr = test3[3]
+projmatr = test2[3]
 session.evaluate(wlexpr("Proj = DirSum[" + str(list(map(int, projmatr))).replace("[", "{").replace("]", "}") + "]\n"))
 session.evaluate(wlexpr("ComputePoly[c_] := (m = Proj.DMatrix; Do[m = m.elem, {elem, c}]; Return[Tr[m]])"))
 
@@ -285,6 +289,6 @@ matrixStr += "}"
 session.evaluate(wlexpr(matrixStr))
 session.evaluate(wlexpr("PolyFromBraidWord[c_] := (matrixList = {}; Do[matrixList = Append[matrixList, If[elem > 0,r[[elem]],Inverse[r[[-elem]]]]], {elem, c}];Return[Simplify[ComputePoly[matrixList]]])"))
 while True:
-    print(session.evaluate(wlexpr(input("Command?"))))
+    print(session.evaluate(wl.Simplify(wl.TeXForm(wlexpr(input("Command?"))))))
     #braid = input("Please enter a comma-separated braid word.")
     #print(session.evaluate(wlexpr("TeXForm[PolyFromBraidWord[{" + str(braid) + "}]]")))

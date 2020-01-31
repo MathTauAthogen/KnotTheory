@@ -155,7 +155,7 @@ def allBut(a, b):
 n = int(input("How many strands?"))
 cables = int(input("Cabled how many times?"))
 rep = input("What (comma-separated) representation?")
-formattedRep = map(int, str(rep).replace(" ", "").split(","))
+formattedRep = list(map(int, str(rep).replace(" ", "").split(",")))
 n = n * cables - 1
 
 #Find all paths at depth n
