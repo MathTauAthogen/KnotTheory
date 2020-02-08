@@ -154,7 +154,7 @@ def allBut(a, b):
 
 n = int(input("How many strands?"))
 cables = int(input("Cabled how many times?"))
-rep = input("What (comma-separated) representation?")
+rep = str(input("What (comma-separated) representation?")).replace("(", "").replace(")", "")
 formattedRep = list(map(int, str(rep).replace(" ", "").split(",")))
 n = n * cables - 1
 
@@ -268,7 +268,7 @@ for i in range(0, len(test2)):
     finalOutput = re.sub("[^\^]\((.*?)\)", "B[\\1]", finalOutput)
     print("R" + str(i + 1) + " = SumMatrs[{" + str(finalOutput) + "}]")
     print("")
-matrixStr = "r = {"
+matrixStr = "r = Simplify[{"
 for i in range(int((n + 1)/cables) - 1):
     if(cables != 1):
         cabled = []
@@ -284,9 +284,30 @@ for i in range(int((n + 1)/cables) - 1):
     else:
         matrixStr += ("R"+str(i + 1) + ", ")
 matrixStr = matrixStr[:-2]
-matrixStr += "}"
+matrixStr += "}]"
+print(matrixStr)
+matrixStr = "rinv = Simplify[{"
+for i in range(int((n + 1)/cables) - 1):
+    if(cables != 1):
+        cabled = []
+        center = cables * (i + 1)
+        for j in range(1, cables):
+            for k in range(center - j, center + j + 1, 2):
+                cabled += [k]
+        cabled = cabled + cabled[::-1][int((n+1)/cables):] + [center]
+        cabledStr = "Inverse[R"+str(center)+"]"
+        for j in cabled:
+            cabledStr += ".Inverse[R"+str(j)+"]"
+        matrixStr += (cabledStr + ", ")
+    else:
+        matrixStr += ("Inverse[R"+str(i + 1) + "], ")
+matrixStr = matrixStr[:-2]
+matrixStr += "}]"
 print(matrixStr)
 print("""
-PolyFromBraidWord[c_] := (matrixList = {}; Do[matrixList = Append[matrixList, If[elem > 0,r[[elem]],Inverse[r[[-elem]]]]], {elem, c}];Return[Simplify[ComputePoly[matrixList]]])
+PolyFromBraidWord[c_] := (matrixList = {}; Do[matrixList = Append[matrixList, If[elem > 0,r[[elem]],rinv[[-elem]]]], {elem, c}];Return[Simplify[ComputePoly[matrixList]]])
+CommonDenom = Denominator[PolyFromBraidWord[{1, 1}]]
+NormalizePoly[x_] := PolyFromBraidWord[x]*CommonDenom
+CoefSimplify[c_] := Factor[CoefficientList[NormalizePoly[c], A]]
 (*End computation cell*)
 """)
