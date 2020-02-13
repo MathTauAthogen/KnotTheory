@@ -234,12 +234,12 @@ print("""
         Return[m])
         DirSum[c_] := ArrayFlatten@ReleaseHold@DiagonalMatrix[Hold /@ c]
         SumMatrs[c_] := (m = Table[Table[0, pathNum], pathNum]; Do[m = m + elem, {elem, c}]; Return[m])
-        DPartM[a_] :=
-        Table[Table[h[Part[a, y] - y + x], {x, 1, Length[a]}], {y, 1,
+        DPartM[a_, t_] :=
+        Table[Table[h[t(Part[a, y] - y + x)], {x, 1, Length[a]}], {y, 1,
    Length[a]}]
-        DPart[a_] := Det[DPartM[a]]
+        SchurPoly[a_] := Det[DPartM[a, 1]]
+        SchurPolyMult[x_, c_] := Det[DPartM[x, c]]
     (*This ends the prerequisites cell, just containing basic definitions*)
-
     """)
 print("(*The below is also boilerplate, but it is specific to the number of strands*)")
 temp = list(set(map(lambda a: tuple(a), test3[0])))
@@ -251,7 +251,7 @@ print("Paths = " + str(occurences).replace("[", "{").replace("]", "}"))
 print("""(*End second boilerplate cell*)
 
     (*Actual computations begin here*)
-    DMatrix = Simplify[DirSum[Join @@ Table[Table[DPart[Part[Partitions, a]], Part[Paths, a]], {a, 1, Length[Partitions]}]]]
+    DMatrix = Simplify[DirSum[Join @@ Table[Table[SchurPoly[Part[Partitions, a]], Part[Paths, a]], {a, 1, Length[Partitions]}]]]
       """)
 projmatr = test3[3]
 
@@ -309,5 +309,7 @@ PolyFromBraidWord[c_] := (matrixList = {}; Do[matrixList = Append[matrixList, If
 CommonDenom = Denominator[PolyFromBraidWord[{1, 1}]]
 NormalizePoly[x_] := PolyFromBraidWord[x]*CommonDenom
 CoefSimplify[c_] := Factor[CoefficientList[NormalizePoly[c], A]]
+Content[c_] := (cont = 0;Do[cont = cont + c[[i]] * i;cont = cont - c[[i]]*c[[i-1]]/2,{i, Length[c]}]; Return[cont])
+Torus[m_,n_] := (poly = 0;Do[q^(-2*n*Content[c]*SchurPoly[c]/m)*SchurMult[c,m]]; Return[Poly])
 (*End computation cell*)
 """)
