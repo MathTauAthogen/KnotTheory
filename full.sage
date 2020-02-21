@@ -218,10 +218,7 @@ test[3] = temp
 
 #Mathematica Code
 
-mathematica("pathNum = " + str(sum(occurences)))
-
-q=var("q")
-A=var("A")
+var('q A')
 
 def quant(c):
     return c - 1 / c
@@ -233,19 +230,19 @@ def pstar(n):
     return quant(A * q ^ (n - 1)) / quant(q ^ n)
 
 def Schur(x, c):
-    schurmat(x, c).determinant()
+    return schurmat(x, c).determinant()
 
 def schurmat(x, c):
-    m = matrix(len(x), len(x))
+    m = matrix(len(x), len(x), lambda i, j: A)
 
     for i in range(len(x)):
         for j in range(len(x)):
-            m[i][j] = h[x[j] - j + i, c]
+            m[i, j] = h(x[j] - j + i, c)
 
     return m
 
 def h(n, t):
-    emm = Partitions[n]
+    emm = Partitions(n)
     c = 0
 
     for j in emm:
@@ -260,13 +257,29 @@ def h(n, t):
         
         for ell in d.keys():
             tempor2 = d[ell]
-            tempor *= (p[t * ell] ^ (tempor2) / (ell ^ tempor2 * factorial(tempor2))
+            tempor *= (p(t * ell) ^ (tempor2) / (ell ^ tempor2 * factorial(tempor2)))
         
-        c += tempor
+        c = c + tempor
 
     return c
     
-Schur[[1], 1]
+print(p(1))
+print(Schur([2], 1).factor())
+
+proj = diagonal_matrix(test3[3])
+
+print(proj)
+
+partitions = test3[0]
+
+dDiagonal = []
+
+for j in len(partitions):
+    dDiagonal = dDiagonal + occurences[j] * [Schur(partitions[j],1)]
+
+dMatrix = diagonal_matrix(dDiagonal)
+
+
 
 mathematica("""
         q[l_, i_] := (m = Table[Table[0, pathNum], pathNum]; If[i == 1, m[[l, l]] = q, m[[l,l]] = -q^(-1)]; Return[m])
