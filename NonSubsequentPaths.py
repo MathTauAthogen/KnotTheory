@@ -217,6 +217,7 @@ print("(*Prerequisites*)")
 print("pathNum = " + str(sum(occurences)))
 
 print("""
+        bra[x_]:=x-x^(-1)
         q[l_, i_] := (m = Table[Table[0, pathNum], pathNum]; If[i == 1, m[[l, l]] = q, m[[l,l]] = -q^(-1)]; Return[m])
         n[a_] := (q^a - q^(-a))/(q - q^(-1))
         k[g_] := (A (q^(g - 1)) - (A (q^(g - 1)))^(-1))/(q^g - q^(-g))
