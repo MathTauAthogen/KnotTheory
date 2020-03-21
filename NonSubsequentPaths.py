@@ -211,11 +211,6 @@ for i in range(len(test2) - 1):
                     test2[k][2][j] = 0
 
 test2 = np.array(test2).T.tolist()
-
-temp = test[2]
-test[2] = test[3]
-test[3] = temp
-
 #Mathematica Code
 
 print("(*Prerequisites*)")
@@ -307,7 +302,7 @@ print(matrixStr)
 print("""
 PolyFromBraidWord[c_] := (matrixList = {}; Do[matrixList = Append[matrixList, If[elem > 0,r[[elem]],rinv[[-elem]]]], {elem, c}];Return[Simplify[ComputePoly[matrixList]]])
 CommonDenom = SchurPoly[{""" + str(formattedRep).replace("[", "").replace("]","") + """}]
-NormalizePoly[x_] := PolyFromBraidWord[x]/CommonDenom
+NormalizePoly[x_] := Factor[PolyFromBraidWord[x]/CommonDenom]
 CoefSimplify[c_] := Factor[CoefficientList[NormalizePoly[c], A]]
 Content[c_] := (cont = 0;Do[cont = cont + c[[i]] * i;cont = cont - c[[i]]*c[[i-1]]/2,{i, Length[c]}]; Return[cont])
 Torus[m_,n_] := (poly = 0;Do[q^(-2*n*Content[c]*SchurPoly[c]/m)*SchurMult[c,m]]; Return[Poly])
