@@ -217,6 +217,7 @@ print("(*Prerequisites*)")
 print("pathNum = " + str(sum(occurences)))
 
 print("""
+        rep={""" + str(formattedRep).replace("[", "").replace("]","") + """}
         bra[x_]:=x-x^(-1)
         q[l_, i_] := (m = Table[Table[0, pathNum], pathNum]; If[i == 1, m[[l, l]] = q, m[[l,l]] = -q^(-1)]; Return[m])
         n[a_] := (q^a - q^(-a))/(q - q^(-1))
@@ -302,7 +303,7 @@ matrixStr += "}]"
 print(matrixStr)
 print("""
 PolyFromBraidWord[c_] := (matrixList = {}; Do[matrixList = Append[matrixList, If[elem > 0,r[[elem]],rinv[[-elem]]]], {elem, c}];Return[Simplify[ComputePoly[matrixList]]])
-CommonDenom = SchurPoly[{""" + str(formattedRep).replace("[", "").replace("]","") + """}]
+CommonDenom = SchurPoly[rep]
 NormalizePoly[x_] := Factor[PolyFromBraidWord[x]/CommonDenom]
 CoefSimplify[c_] := Factor[CoefficientList[NormalizePoly[c], A]]
 Content[c_] := (cont = 0;Do[cont = cont + c[[i]] * i;cont = cont - c[[i]]*c[[i-1]]/2,{i, Length[c]}]; Return[cont])
