@@ -305,6 +305,8 @@ print("""
 PolyFromBraidWord[c_] := (matrixList = {}; Do[matrixList = Append[matrixList, If[elem > 0,r[[elem]],rinv[[-elem]]]], {elem, c}];Return[Simplify[ComputePoly[matrixList]]])
 CommonDenom = SchurPoly[rep]
 NormalizePoly[x_] := Factor[PolyFromBraidWord[x]/CommonDenom]
+AFixedPoly[x_] := Factor[NormalizePoly[x] * A^(Total[rep] * Total[Map[Sign, x]])]
+DiffExp[x_] := 1 + Factor[AFixedPoly[x]-1]
 CoefSimplify[c_] := Factor[CoefficientList[NormalizePoly[c], A]]
 Content[c_] := (cont = 0;Do[cont = cont + c[[i]] * i;cont = cont - c[[i]]*c[[i-1]]/2,{i, Length[c]}]; Return[cont])
 Torus[m_,n_] := (poly = 0;Do[q^(-2*n*Content[c]*SchurPoly[c]/m)*SchurMult[c,m]]; Return[Poly])
