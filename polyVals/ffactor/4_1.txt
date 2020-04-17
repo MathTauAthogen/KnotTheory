@@ -1,11 +1,16 @@
-Representation [{1}]:-A^2 \left(A^2+1\right)
+Representation [{1}]:-A^2
 
-Representation [{2}]:A^4 q^2 \left(A^4 q^4+A^2 q^2+A^2+1\right)
+Representation [{2}]:A^4 q^2
 
-Representation [{3}]:-A^6 q^6 \left(A^2 q^4+1\right) \left(A^4 q^8+A^2 q^2+A^2+1\right)
+Representation [{3}]:-A^6 q^6
 
-Representation [{4}]:A^8 q^{12} \left(A^8 q^{24}+A^6 q^{18}+A^6 q^{16}+A^6 q^{14}+A^6 q^{12}+A^4 q^{12}+A^4 q^{10}+2 A^4 q^8+A^4 q^6+A^4 q^4+A^2 q^6+A^2 q^4+A^2 q^2+A^2+1\right)
+Representation [{4}]:A^8 q^{12}
 
-Representation [{5}]:-A^{10} q^{20} \left(A^2 q^8+1\right) \left(A^8 q^{32}+A^6 q^{22}+A^6 q^{20}+A^6 q^{18}+A^6 q^{16}+A^4 q^{16}+A^4 q^{12}+A^4 q^{10}+A^4 q^8+A^4 q^6+A^4 q^4+A^2 q^6+A^2 q^4+A^2 q^2+A^2+1\right)
+Representation [{5}]:-A^{10} q^{20}
 
+Representation [{6}]:A^{12} q^{30}
+
+Representation [{7}]:-A^{14} q^{42}
+
+Representation [{8}]:A^{16} q^{56}
 

@@ -1,16 +1,16 @@
-Representation [{1}]:-A^2
+Representation [{1}]:1
 
-Representation [{2}]:A^4 q^2
+Representation [{2}]:1
 
-Representation [{3}]:-A^6 q^6
+Representation [{3}]:1
 
-Representation [{4}]:A^8 q^{12}
+Representation [{4}]:1
 
-Representation [{5}]:-A^{10} q^{20}
+Representation [{5}]:1
 
-Representation [{6}]:A^{12} q^{30}
+Representation [{6}]:1
 
-Representation [{7}]:-A^{14} q^{42}
+Representation [{7}]:1
 
-Representation [{8}]:A^{16} q^{56}
+Representation [{8}]:1
 
